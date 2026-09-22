@@ -55,6 +55,9 @@ td.pk{font-weight:700}
 .lg.dk::before,td.dk{background:#FDEBD3!important}
 .lg.tr::before,td.tr{background:#EDE3F5!important}
 .chain{font-size:23px;background:#EDE3F5;border-radius:8px;padding:12px 16px}
+.phys{font-size:15px;margin-bottom:12px}.phys th{font-size:15px;padding:6px 10px}.phys td{padding:4px 10px}
+.phys tr.pk td{background:var(--key-soft)!important}.phys tr.fk td{background:var(--fk-soft)!important}.phys tr.pkfk td{background:#FBE3D6!important}
+.phys code{font-size:.85em;background:none;padding:0;color:var(--ink)}
 .two.mid{align-items:center;height:100%}
 .two.mid .fig img{max-height:540px}
 .two.wider{grid-template-columns:1.75fr 1fr;gap:32px}
@@ -126,34 +129,19 @@ ol.goals{font-size:20px}ol.goals li{margin-bottom:6px}
 .timer.done{background:var(--warn)}
 button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 
-.notes{display:none}
 /* kontrol di luar panggung */
 #bar{position:fixed;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.12);z-index:5}
 #bar i{display:block;height:100%;background:var(--key);width:0;transition:width .2s}
 #nav{position:fixed;right:14px;top:14px;display:flex;gap:6px;z-index:6;opacity:.25;transition:opacity .2s}
 #nav:hover,#nav:focus-within{opacity:1}
 #nav button{font:600 14px var(--sans);border:0;border-radius:6px;padding:8px 12px;background:#fff;color:var(--ink);cursor:pointer}
-#notesPanel{position:fixed;left:0;right:0;bottom:4px;max-height:34vh;overflow:auto;background:#fff;border-top:4px solid var(--key);padding:14px 22px;font-size:17px;line-height:1.5;z-index:7;display:none;box-shadow:0 -6px 20px rgba(0,0,0,.25)}
-#notesPanel.on{display:block}
-#notesPanel h4{margin:0 0 6px;font-size:14px;color:var(--muted)}
 #help{position:fixed;inset:0;background:rgba(15,26,48,.85);display:none;align-items:center;justify-content:center;z-index:9}
 #help.on{display:flex}
 #help div{background:#fff;border-radius:12px;padding:28px 34px;font-size:17px;max-width:520px}
 #help table{border-collapse:collapse;width:100%}#help td{padding:6px 8px;border-bottom:1px solid var(--line)}
 #help kbd{font-family:var(--mono);background:var(--wash);border:1px solid var(--line);border-radius:4px;padding:1px 7px}
 
-/* mode presenter */
-body.presenter{overflow:auto;background:#EEF1F6}
-body.presenter #viewport,body.presenter #bar,body.presenter #nav{display:none}
-#pv{display:none;padding:22px;gap:20px;grid-template-columns:1.4fr 1fr;min-height:100vh}
-body.presenter #pv{display:grid}
-#pv .col{display:flex;flex-direction:column;gap:14px}
-#pv .card2{background:#fff;border-radius:10px;padding:16px 20px}
-#pv h3{margin:0 0 6px;font-size:14px;color:var(--muted);font-weight:700}
-#pvNow{font-size:26px;font-weight:800}#pvNext{font-size:19px;font-weight:700;color:var(--ink-2)}
-#pvNotes{font-size:20px;line-height:1.55;white-space:pre-wrap}
-#pvClock{font-family:var(--mono);font-size:34px;font-weight:600}
-#pv .btns{display:flex;gap:10px}#pv .btns button{font:700 16px var(--sans);border:0;border-radius:8px;padding:12px 18px;background:var(--ink);color:#fff;cursor:pointer}
+font:700 16px var(--sans);border:0;border-radius:8px;padding:12px 18px;background:var(--ink);color:#fff;cursor:pointer}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{
@@ -162,6 +150,6 @@ body.presenter #pv{display:grid}
   #viewport{position:static;display:block;padding:0}
   #stage{transform:none!important;width:auto;height:auto}
   .slide{display:block!important;position:relative;width:1280px;height:720px;page-break-after:always;break-after:page}
-  #bar,#nav,#notesPanel,#help,#pv{display:none!important}
+  #bar,#nav,#help{display:none!important}
   .timer button{display:none}
 }
