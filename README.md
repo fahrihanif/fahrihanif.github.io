@@ -12,3 +12,7 @@ This is not a final version yet, but you can take a look [fahrihanif.github.io](
 [24/09/2020 18:00] Home, Header, Navigation.
 
 [24/09/2020 18:56] favico.
+
+[22/09/2026 08:00] Add Database Fundamental with SQL Server training slides: Day 1 (day1.html).
+
+[22/09/2026 08:00] Add shared stylesheet.css and script.js for training slides (navigation, speaker notes, presenter view, timer).
