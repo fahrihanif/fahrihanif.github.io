@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hari 3 — Database Fundamental dengan SQL Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="stylesheet.css">
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<section class="slide k-cover" data-title="Database Fundamental dengan SQL Server" aria-label="Slide 1: Database Fundamental dengan SQL Server">
+<div class="sb"><div class="sc">
+<div class="cover">
+  <p class="cv-org">Metrodata Academy</p>
+  <h1 class="cv-title">Database Fundamental<br>dengan SQL Server</h1>
+  <table class="cv-meta"><tbody>
+    <tr><th>Program</th><td>Untuk Developer, 5 hari</td></tr>
+    <tr><th>Hari</th><td>3 dari 5</td></tr>
+    <tr><th>Topik</th><td>JOIN, fungsi, agregasi, dan pagination</td></tr>
+  </tbody></table>
+</div></div></div>
+</section>
+<section class="slide k-content" data-title="Review Hari 2" aria-label="Slide 2: Review Hari 2">
+<div class="sb"><h2 class="st">Review Hari 2</h2><div class="sc"><ol class=""><li>Apa bedanya <code>'Budi'</code> dan <code>N'Budi'</code>, dan kapan N wajib dipakai?</li><li>Kenapa Customer.Email memakai filtered unique index, bukan constraint UNIQUE?</li><li>Sebutkan kebiasaan sebelum menjalankan UPDATE atau DELETE.</li></ol><p class="note-line">Cek juga: <code>SELECT @@TRANCOUNT;</code> harus 0, dan data SalesDB masih utuh.</p></div></div><footer class="sf"><span>Pembukaan</span><span>2 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Dari satu tabel ke banyak tabel" aria-label="Slide 3: Dari satu tabel ke banyak tabel">
+<div class="sb"><h2 class="st">Dari satu tabel ke banyak tabel</h2><div class="sc"><div class="two"><div class="card"><h3>Hari 1 dan 2</h3><p>Normalisasi <b>memecah</b> data agar setiap fakta tersimpan di satu tempat. Query kemarin hanya menyentuh satu tabel.</p></div><div class="card"><h3>Hari 3</h3><p>Laporan membutuhkan data dari beberapa tabel sekaligus, jadi hari ini kita <b>menggabungkannya kembali</b> saat query dijalankan.</p></div></div><p class="ask">Nama pelanggan ada di Customer, tanggal di Order, jumlah barang di OrderDetail. Bagaimana menyatukannya?</p></div></div><footer class="sf"><span>Pembukaan</span><span>3 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Tujuan Hari 3" aria-label="Slide 4: Tujuan Hari 3">
+<div class="sb"><h2 class="st">Tujuan Hari 3</h2><div class="sc"><ol class="goals"><li>Menggabungkan tabel dengan INNER JOIN dan OUTER JOIN, serta mengenali jebakannya</li><li>Memakai fungsi string, fungsi tanggal, dan CASE</li><li>Meringkas data dengan fungsi agregat, GROUP BY, dan HAVING</li><li>Memberi nomor urut dan membuat pagination dengan ROW_NUMBER, COUNT(*) OVER (), dan OFFSET ... FETCH</li><li>Menggabungkan hasil beberapa query dengan set operator</li></ol></div></div><footer class="sf"><span>Pembukaan</span><span>4 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Agenda hari ini" aria-label="Slide 5: Agenda hari ini">
+<div class="sb"><h2 class="st">Agenda hari ini</h2><div class="sc"><table class="t "><thead><tr><th>Bab</th><th>Topik</th><th>Latihan</th></tr></thead><tbody><tr><td>1</td><td>Menggabungkan tabel dengan JOIN</td><td>—</td></tr><tr><td>2</td><td>Fungsi bawaan: string, tanggal, CASE</td><td>L3.1, L3.2</td></tr><tr><td>3</td><td>Agregasi dan GROUP BY</td><td>L3.3, L3.4</td></tr><tr><td>4</td><td>Window function untuk penomoran dan pagination</td><td>L3.5</td></tr><tr><td>5</td><td>Set operator</td><td>L3.6, L3.7 (opsional)</td></tr></tbody></table><p class="note-line">Tersedia juga lembar latihan JOIN dan agregasi dalam 10 variasi sebagai latihan tambahan.</p></div></div><footer class="sf"><span>Pembukaan</span><span>5 / 58</span></footer>
+</section>
+<section class="slide k-divider" data-title="Menggabungkan Tabel dengan JOIN" aria-label="Slide 6: Menggabungkan Tabel dengan JOIN">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 1</p><table class="dv-t"><thead><tr><th colspan="2">Menggabungkan Tabel dengan JOIN</th></tr></thead><tbody><tr><td class="k">1.1</td><td>Kenapa data perlu digabungkan</td></tr><tr><td class="k">1.2</td><td>INNER JOIN</td></tr><tr><td class="k">1.3</td><td>OUTER JOIN</td></tr><tr><td class="k">1.4</td><td>Jebakan filter di WHERE</td></tr><tr><td class="k">1.5</td><td>JOIN lebih dari dua tabel</td></tr><tr><td class="k">1.6</td><td>Self join</td></tr><tr><td class="k">1.7</td><td>Jebakan fan-out</td></tr><tr><td class="k">1.8</td><td>Alias dan gaya penulisan</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 1</span><span>6 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Kenapa perlu JOIN" aria-label="Slide 7: Kenapa perlu JOIN">
+<div class="sb"><h2 class="st">Kenapa perlu JOIN</h2><div class="sc"><div class="box def"><p class="box-l">Definisi</p><p><b>JOIN</b> menggabungkan baris dari dua tabel berdasarkan kondisi di klausa <code>ON</code>, biasanya kecocokan foreign key dengan primary key.</p></div><p class="lead">Normalisasi memecah data agar setiap fakta tersimpan sekali. JOIN menyatukannya kembali <b>saat query dijalankan</b>, bukan saat disimpan.</p></div></div><footer class="sf"><span>Bab 1</span><span>7 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="CROSS JOIN dan cartesian product" aria-label="Slide 8: CROSS JOIN dan cartesian product">
+<div class="sb"><h2 class="st">CROSS JOIN dan cartesian product</h2><div class="sc"><pre class="code"><code>-- 6 produk × 3 kategori = 18 baris
+SELECT p.Name, c.Name AS Category
+FROM   SalesLT.Product AS p
+CROSS JOIN SalesLT.ProductCategory AS c;</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p>Hasil jauh lebih banyak dari yang diharapkan? Periksa apakah ada tabel yang lupa diberi kondisi <code>ON</code>. Gejalanya: jumlah baris berlipat dan angka laporan membengkak.</p></div></div></div><footer class="sf"><span>Bab 1</span><span>8 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="INNER JOIN" aria-label="Slide 9: INNER JOIN">
+<div class="sb"><h2 class="st">INNER JOIN</h2><div class="sc"><pre class="code"><code>SELECT h.SalesOrderID, h.OrderDate, c.FirstName, c.LastName
+FROM   SalesLT.SalesOrderHeader AS h
+JOIN   SalesLT.Customer         AS c ON c.CustomerID = h.CustomerID;</code></pre><ul class="sm"><li><code>JOIN</code> saja sudah berarti <code>INNER JOIN</code></li><li>Hanya baris yang cocok di kedua tabel yang muncul</li><li>Hindari gaya lama <code>FROM A, B WHERE A.id = B.id</code>: satu kondisi terlupa langsung menjadi cartesian product</li></ul></div></div><footer class="sf"><span>Bab 1</span><span>9 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Bagaimana baris dipasangkan" aria-label="Slide 10: Bagaimana baris dipasangkan">
+<div class="sb"><h2 class="st">Bagaimana baris dipasangkan</h2><div class="sc"><div class="two"><div><table class="t sm"><thead><tr><th>Customer</th><th></th></tr></thead><tbody><tr><td>1</td><td>Budi</td></tr><tr><td>2</td><td>Siti</td></tr><tr><td>3</td><td>Andi</td></tr><tr><td>4</td><td>Dewi</td></tr></tbody></table><table class="t sm"><thead><tr><th>Order</th><th>CustomerID</th></tr></thead><tbody><tr><td>1</td><td>1</td></tr><tr><td>2</td><td>2</td></tr><tr><td>3</td><td>2</td></tr></tbody></table></div><div><table class="t sm"><thead><tr><th>Jenis JOIN</th><th>Hasil</th></tr></thead><tbody><tr><td><code>INNER JOIN</code></td><td>3 baris: Budi–1, Siti–2, Siti–3</td></tr><tr><td><code>LEFT JOIN</code></td><td>5 baris: ditambah Andi dan Dewi dengan OrderID NULL</td></tr></tbody></table><p class="note-line">Siti muncul <b>dua kali</b> karena punya dua order. Inilah awal fan-out (1.7).</p></div></div></div></div><footer class="sf"><span>Bab 1</span><span>10 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="OUTER JOIN" aria-label="Slide 11: OUTER JOIN">
+<div class="sb"><h2 class="st">OUTER JOIN</h2><div class="sc"><table class="t "><thead><tr><th>Jenis</th><th>Baris yang dikembalikan</th></tr></thead><tbody><tr><td><code>INNER JOIN</code></td><td>Hanya yang cocok di kedua tabel</td></tr><tr><td><code>LEFT JOIN</code></td><td>Semua baris tabel kiri; kolom tabel kanan NULL jika tidak ada pasangan</td></tr><tr><td><code>RIGHT JOIN</code></td><td>Kebalikannya. Jarang dipakai: tukar saja urutan tabel dan pakai LEFT</td></tr><tr><td><code>FULL OUTER JOIN</code></td><td>Semua baris dari kedua tabel</td></tr></tbody></table></div></div><footer class="sf"><span>Bab 1</span><span>11 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Mencari data tanpa pasangan" aria-label="Slide 12: Mencari data tanpa pasangan">
+<div class="sb"><h2 class="st">Mencari data tanpa pasangan</h2><div class="sc"><pre class="code"><code>SELECT c.CustomerID, c.FirstName, c.LastName
+FROM   SalesLT.Customer            AS c
+LEFT JOIN SalesLT.SalesOrderHeader AS h ON h.CustomerID = c.CustomerID
+WHERE  h.SalesOrderID IS NULL;</code></pre><p class="lead">Pola <code>LEFT JOIN ... IS NULL</code> adalah cara baku mencari pelanggan tanpa order, produk yang belum pernah terjual, atau data master yang belum dipakai.</p></div></div><footer class="sf"><span>Bab 1</span><span>12 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Jebakan: filter tabel kanan di WHERE" aria-label="Slide 13: Jebakan: filter tabel kanan di WHERE">
+<div class="sb"><h2 class="st">Jebakan: filter tabel kanan di WHERE</h2><div class="sc"><pre class="code"><code>-- SALAH: LEFT JOIN berubah menjadi INNER JOIN
+LEFT JOIN SalesLT.SalesOrderHeader AS h ON h.CustomerID = c.CustomerID
+WHERE  h.OrderDate >= '20080101'
+
+-- BENAR: kondisi tabel kanan ditulis di ON
+LEFT JOIN SalesLT.SalesOrderHeader AS h
+       ON h.CustomerID = c.CustomerID AND h.OrderDate >= '20080101'</code></pre><p class="note-line">Pelanggan tanpa order punya OrderDate NULL; perbandingan NULL bernilai UNKNOWN sehingga barisnya tersaring keluar.</p></div></div><footer class="sf"><span>Bab 1</span><span>13 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="JOIN lebih dari dua tabel" aria-label="Slide 14: JOIN lebih dari dua tabel">
+<div class="sb"><h2 class="st">JOIN lebih dari dua tabel</h2><div class="sc"><pre class="code"><code>SELECT h.SalesOrderID, c.CompanyName, p.Name AS ProductName, d.OrderQty
+FROM   SalesLT.SalesOrderHeader AS h
+JOIN   SalesLT.Customer         AS c ON c.CustomerID   = h.CustomerID
+JOIN   SalesLT.SalesOrderDetail AS d ON d.SalesOrderID = h.SalesOrderID
+JOIN   SalesLT.Product          AS p ON p.ProductID    = d.ProductID;</code></pre><div class="box tip"><p class="box-l">Tips dari lapangan</p><p>Bangun bertahap: mulai dua tabel, jalankan, periksa jumlah baris, baru tambah tabel berikutnya.</p></div></div></div><footer class="sf"><span>Bab 1</span><span>14 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Self join" aria-label="Slide 15: Self join">
+<div class="sb"><h2 class="st">Self join</h2><div class="sc"><pre class="code"><code>SELECT anak.Name AS Kategori, induk.Name AS KategoriInduk
+FROM   SalesLT.ProductCategory AS anak
+LEFT JOIN SalesLT.ProductCategory AS induk
+       ON induk.ProductCategoryID = anak.ParentProductCategoryID;</code></pre><ul class="sm"><li>Tabel digabungkan dengan dirinya sendiri; wajib memakai alias berbeda</li><li><code>LEFT JOIN</code> agar kategori tanpa induk tetap muncul</li></ul></div></div><footer class="sf"><span>Bab 1</span><span>15 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Jebakan fan-out: angka terhitung ganda" aria-label="Slide 16: Jebakan fan-out: angka terhitung ganda">
+<div class="sb"><h2 class="st">Jebakan fan-out: angka terhitung ganda</h2><div class="sc"><pre class="code"><code>-- SALAH: TotalDue terulang untuk setiap item order
+SELECT SUM(h.TotalDue)
+FROM   SalesLT.SalesOrderHeader AS h
+JOIN   SalesLT.SalesOrderDetail AS d ON d.SalesOrderID = h.SalesOrderID;
+
+-- BENAR: jumlahkan dari tabel header saja
+SELECT SUM(h.TotalDue) FROM SalesLT.SalesOrderHeader AS h;
+
+-- BENAR: atau hitung ulang dari detail
+SELECT SUM(d.OrderQty * d.UnitPrice) FROM SalesLT.SalesOrderDetail AS d;</code></pre><p class="ask">Sebelum menjumlahkan: satu baris hasil JOIN ini mewakili apa?</p></div></div><footer class="sf"><span>Bab 1</span><span>16 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Alias dan gaya penulisan" aria-label="Slide 17: Alias dan gaya penulisan">
+<div class="sb"><h2 class="st">Alias dan gaya penulisan</h2><div class="sc"><ul class=""><li>Beri alias singkat yang bermakna (<code>c</code>, <code>od</code>), lalu selalu tulis alias di depan nama kolom</li><li>Tanpa alias, kolom bernama sama di dua tabel menghasilkan error <i>Ambiguous column name</i></li><li>Satu JOIN per baris, klausa <code>ON</code> disejajarkan</li><li>Sebutkan kolom yang dibutuhkan saja; <code>SELECT *</code> pada query multi-tabel menghasilkan banyak kolom duplikat</li></ul></div></div><footer class="sf"><span>Bab 1</span><span>17 / 58</span></footer>
+</section>
+<section class="slide k-quiz" data-title="Cek pemahaman Bab 1" aria-label="Slide 18: Cek pemahaman Bab 1">
+<div class="sb"><p class="tag quiz">Cek pemahaman</p><h2 class="st">Cek pemahaman Bab 1</h2><div class="sc"><ol class=""><li>Kenapa <code>LEFT JOIN</code> dengan filter kolom tabel kanan di <code>WHERE</code> berubah menjadi <code>INNER JOIN</code>?</li><li>Tulis pola untuk mencari produk yang belum pernah terjual.</li><li>Laporan menjumlahkan nilai order setelah JOIN ke detail dan hasilnya membengkak. Kenapa?</li></ol></div></div><footer class="sf"><span>Bab 1</span><span>18 / 58</span></footer>
+</section>
+<section class="slide k-answer" data-title="Jawaban cek pemahaman Bab 1" aria-label="Slide 19: Jawaban cek pemahaman Bab 1">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Jawaban cek pemahaman Bab 1</h2><div class="sc"><ol class=""><li>Baris tanpa pasangan punya kolom kanan NULL; filter terhadap NULL bernilai UNKNOWN sehingga barisnya tersaring keluar. Letakkan kondisinya di <code>ON</code>.</li><li><code>FROM Product p LEFT JOIN OrderDetail d ON d.ProductID = p.ProductID WHERE d.ProductID IS NULL</code></li><li>Fan-out: baris order terulang sebanyak jumlah itemnya. Jumlahkan dari tabel order saja atau hitung ulang dari kolom detail.</li></ol></div></div><footer class="sf"><span>Bab 1</span><span>19 / 58</span></footer>
+</section>
+<section class="slide k-divider" data-title="Fungsi Bawaan" aria-label="Slide 20: Fungsi Bawaan">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 2</p><table class="dv-t"><thead><tr><th colspan="2">Fungsi Bawaan</th></tr></thead><tbody><tr><td class="k">2.1</td><td>Fungsi string</td></tr><tr><td class="k">2.2</td><td>Fungsi tanggal</td></tr><tr><td class="k">2.3</td><td>CASE, IIF, CHOOSE</td></tr><tr><td class="k">2.4</td><td>Jebakan fungsi pada kolom di WHERE</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 2</span><span>20 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Fungsi string" aria-label="Slide 21: Fungsi string">
+<div class="sb"><h2 class="st">Fungsi string</h2><div class="sc"><table class="t sm"><thead><tr><th>Fungsi</th><th>Kegunaan</th></tr></thead><tbody><tr><td><code>UPPER</code>, <code>LOWER</code></td><td>Ubah huruf besar atau kecil</td></tr><tr><td><code>TRIM</code>, <code>LTRIM</code>, <code>RTRIM</code></td><td>Hapus spasi di ujung</td></tr><tr><td><code>LEFT</code>, <code>RIGHT</code>, <code>SUBSTRING</code></td><td>Ambil bagian teks</td></tr><tr><td><code>CHARINDEX</code></td><td>Posisi teks di dalam teks lain</td></tr><tr><td><code>REPLACE</code></td><td>Ganti bagian teks</td></tr><tr><td><code>CONCAT</code>, <code>CONCAT_WS</code></td><td>Gabung teks dengan aman terhadap NULL</td></tr></tbody></table><pre class="code"><code>SELECT EmailAddress,
+       SUBSTRING(EmailAddress, CHARINDEX('@', EmailAddress) + 1, 100) AS Domain
+FROM   SalesLT.Customer;</code></pre></div></div><footer class="sf"><span>Bab 2</span><span>21 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Fungsi tanggal" aria-label="Slide 22: Fungsi tanggal">
+<div class="sb"><h2 class="st">Fungsi tanggal</h2><div class="sc"><table class="t sm"><thead><tr><th>Fungsi</th><th>Kegunaan</th><th>Contoh</th></tr></thead><tbody><tr><td><code>YEAR</code>, <code>MONTH</code>, <code>DAY</code></td><td>Ambil bagian tanggal</td><td><code>YEAR(OrderDate)</code></td></tr><tr><td><code>DATEPART</code></td><td>Bagian apa pun, termasuk kuartal</td><td><code>DATEPART(QUARTER, OrderDate)</code></td></tr><tr><td><code>DATEADD</code></td><td>Tambah atau kurangi waktu</td><td><code>DATEADD(DAY, -7, SYSDATETIME())</code></td></tr><tr><td><code>DATEDIFF</code></td><td>Selisih dua tanggal</td><td><code>DATEDIFF(DAY, OrderDate, ShipDate)</code></td></tr><tr><td><code>EOMONTH</code></td><td>Akhir bulan</td><td><code>EOMONTH(OrderDate)</code></td></tr></tbody></table><div class="box warn"><p class="box-l">Perhatian</p><p>Hindari <code>FORMAT</code> untuk data banyak: jauh lebih lambat daripada <code>CONVERT</code>. Pemformatan tampilan sebaiknya di aplikasi.</p></div></div></div><footer class="sf"><span>Bab 2</span><span>22 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="CASE" aria-label="Slide 23: CASE">
+<div class="sb"><h2 class="st">CASE</h2><div class="sc"><pre class="code"><code>SELECT Name, ListPrice,
+       CASE WHEN ListPrice < 100  THEN N'Murah'
+            WHEN ListPrice < 1000 THEN N'Menengah'
+            ELSE N'Mahal' END AS Segmen
+FROM   SalesLT.Product;</code></pre><ul class="sm"><li>Berhenti pada <code>WHEN</code> pertama yang TRUE, jadi <b>urutan kondisi penting</b></li><li>Tanpa <code>ELSE</code>, nilai yang tidak cocok menjadi NULL</li><li>Bisa dipakai di <code>WHERE</code>, <code>ORDER BY</code>, dan di dalam fungsi agregat</li></ul></div></div><footer class="sf"><span>Bab 2</span><span>23 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="IIF dan CHOOSE" aria-label="Slide 24: IIF dan CHOOSE">
+<div class="sb"><h2 class="st">IIF dan CHOOSE</h2><div class="sc"><div class="two"><div><pre class="code"><code>IIF(Stock > 0, N'Tersedia', N'Habis')</code></pre><p>Bentuk singkat <code>CASE</code> untuk dua cabang.</p></div><div><pre class="code"><code>CHOOSE(3, N'Emas', N'Perak', N'Perunggu')
+-- hasil: Perunggu</code></pre><p>Memilih berdasarkan nomor.</p></div></div><p class="note-line">Untuk logika yang lebih dari dua cabang, <code>CASE</code> lebih mudah dibaca.</p></div></div><footer class="sf"><span>Bab 2</span><span>24 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Jebakan: fungsi pada kolom di WHERE" aria-label="Slide 25: Jebakan: fungsi pada kolom di WHERE">
+<div class="sb"><h2 class="st">Jebakan: fungsi pada kolom di WHERE</h2><div class="sc"><pre class="code"><code>-- Kurang efisien: index tidak bisa dipakai optimal
+WHERE YEAR(OrderDate) = 2008
+
+-- Lebih baik: kolom dibiarkan apa adanya
+WHERE OrderDate >= '20080101' AND OrderDate < '20090101'</code></pre><ul class="sm"><li>Kolom yang dibungkus fungsi harus dihitung untuk setiap baris</li><li>Pola sama berlaku untuk <code>LEFT(Kolom,3) = 'ABC'</code> (ganti dengan <code>LIKE 'ABC%'</code>) dan <code>CAST</code> di <code>WHERE</code></li></ul></div></div><footer class="sf"><span>Bab 2</span><span>25 / 58</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L3.1 dan L3.2" aria-label="Slide 26: Latihan L3.1 dan L3.2">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L3.1 dan L3.2</h2><div class="sc"><ol class=""><li><b>L3.1</b> Riwayat order setiap pelanggan: nama pelanggan, nomor order, tanggal, dan total nilai order</li><li><b>L3.2</b> Total jumlah terjual dan nilai penjualan per kategori, urut dari yang terbesar</li></ol><p class="note-line sm">Keduanya memakai JOIN dan agregasi. Materi <code>GROUP BY</code> dibahas lengkap di Bab 3; gunakan pola dari contoh.</p><div class="timer" data-min="25"><span class="tm-d">25:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 2</span><span>26 / 58</span></footer>
+</section>
+<section class="slide k-handoff" data-title="Pembahasan L3.1 dan L3.2" aria-label="Slide 27: Pembahasan L3.1 dan L3.2">
+<div class="sb"><p class="tag act">Pembahasan</p><h2 class="st">Pembahasan L3.1 dan L3.2</h2><div class="sc"><div class="handoff"><p>Beralih ke</p><p class="hf-file">Catatan Trainer Hari 3</p><p class="hf-sheet">Kunci L3.1 dan L3.2</p></div></div></div><footer class="sf"><span>Bab 2</span><span>27 / 58</span></footer>
+</section>
+<section class="slide k-divider" data-title="Agregasi dan GROUP BY" aria-label="Slide 28: Agregasi dan GROUP BY">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 3</p><table class="dv-t"><thead><tr><th colspan="2">Agregasi dan GROUP BY</th></tr></thead><tbody><tr><td class="k">3.1</td><td>Fungsi agregat</td></tr><tr><td class="k">3.2</td><td>GROUP BY</td></tr><tr><td class="k">3.3</td><td>HAVING vs WHERE</td></tr><tr><td class="k">3.4</td><td>Agregasi setelah JOIN</td></tr><tr><td class="k">3.5</td><td>DISTINCT vs GROUP BY</td></tr><tr><td class="k">3.6</td><td>ROLLUP sekilas</td></tr><tr><td class="k">3.7</td><td>Tiga pola laporan</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 3</span><span>28 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Fungsi agregat" aria-label="Slide 29: Fungsi agregat">
+<div class="sb"><h2 class="st">Fungsi agregat</h2><div class="sc"><table class="t "><thead><tr><th>Fungsi</th><th>Menghasilkan</th><th>Catatan</th></tr></thead><tbody><tr><td><code>COUNT(*)</code></td><td>Jumlah baris</td><td>Termasuk baris yang kolomnya NULL</td></tr><tr><td><code>COUNT(kolom)</code></td><td>Baris yang kolomnya tidak NULL</td><td>Selisih dengan <code>COUNT(*)</code> = banyaknya NULL</td></tr><tr><td><code>COUNT(DISTINCT kolom)</code></td><td>Jumlah nilai berbeda</td><td>Berguna setelah JOIN</td></tr><tr><td><code>SUM</code>, <code>AVG</code></td><td>Total dan rata-rata</td><td>Mengabaikan NULL</td></tr><tr><td><code>MIN</code>, <code>MAX</code></td><td>Terkecil dan terbesar</td><td>Untuk angka, teks, dan tanggal</td></tr></tbody></table><div class="box warn"><p class="box-l">Perhatian</p><p><code>AVG</code> mengabaikan NULL, bukan menganggapnya nol. Jika NULL harus dihitung nol: <code>AVG(ISNULL(kolom, 0))</code>.</p></div></div></div><footer class="sf"><span>Bab 3</span><span>29 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="GROUP BY" aria-label="Slide 30: GROUP BY">
+<div class="sb"><h2 class="st">GROUP BY</h2><div class="sc"><pre class="code"><code>SELECT p.ProductCategoryID,
+       COUNT(*)         AS JumlahProduk,
+       AVG(p.ListPrice) AS RataHarga
+FROM   SalesLT.Product AS p
+GROUP BY p.ProductCategoryID
+ORDER BY JumlahProduk DESC;</code></pre><p class="lead">Setiap kolom di <code>SELECT</code> harus ikut di <code>GROUP BY</code> atau dibungkus fungsi agregat.</p></div></div><footer class="sf"><span>Bab 3</span><span>30 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Kesalahan GROUP BY yang umum" aria-label="Slide 31: Kesalahan GROUP BY yang umum">
+<div class="sb"><h2 class="st">Kesalahan GROUP BY yang umum</h2><div class="sc"><pre class="code"><code>-- SALAH: Name bukan agregat dan tidak ada di GROUP BY
+SELECT ProductCategoryID, Name, COUNT(*) FROM SalesLT.Product
+GROUP BY ProductCategoryID;
+
+-- BENAR: ikut dikelompokkan
+GROUP BY ProductCategoryID, Name;
+
+-- BENAR: atau diagregasi
+SELECT ProductCategoryID, MAX(Name) AS ContohNama, COUNT(*) ...</code></pre><div class="box tip"><p class="box-l">Tips dari lapangan</p><p>Menambah kolom ke <code>GROUP BY</code> mengubah arti kelompoknya. Tanyakan dulu: satu baris hasil ini mewakili apa?</p></div></div></div><footer class="sf"><span>Bab 3</span><span>31 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="HAVING vs WHERE" aria-label="Slide 32: HAVING vs WHERE">
+<div class="sb"><h2 class="st">HAVING vs WHERE</h2><div class="sc"><table class="t "><thead><tr><th></th><th><code>WHERE</code></th><th><code>HAVING</code></th></tr></thead><tbody><tr><td>Diproses</td><td>Sebelum pengelompokan</td><td>Setelah pengelompokan</td></tr><tr><td>Menyaring</td><td>Baris satuan</td><td>Kelompok</td></tr><tr><td>Boleh memakai agregat</td><td>Tidak</td><td>Ya</td></tr></tbody></table><pre class="code"><code>WHERE  p.ListPrice > 100        -- saring baris dulu
+GROUP BY p.ProductCategoryID
+HAVING COUNT(*) >= 5            -- lalu saring kelompok</code></pre><p class="note-line sm">Menyaring lebih awal berarti lebih sedikit baris yang dikelompokkan, sehingga query lebih cepat.</p></div></div><footer class="sf"><span>Bab 3</span><span>32 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Agregasi setelah JOIN" aria-label="Slide 33: Agregasi setelah JOIN">
+<div class="sb"><h2 class="st">Agregasi setelah JOIN</h2><div class="sc"><pre class="code"><code>SELECT c.CompanyName,
+       COUNT(DISTINCT h.SalesOrderID) AS JumlahOrder,   -- DISTINCT karena baris terulang
+       SUM(d.OrderQty * d.UnitPrice)  AS TotalBelanja
+FROM   SalesLT.Customer         AS c
+JOIN   SalesLT.SalesOrderHeader AS h ON h.CustomerID   = c.CustomerID
+JOIN   SalesLT.SalesOrderDetail AS d ON d.SalesOrderID = h.SalesOrderID
+GROUP BY c.CompanyName;</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p>Pada <code>LEFT JOIN</code>, <code>COUNT(*)</code> tetap menghitung 1 untuk baris tanpa pasangan. Pakai <code>COUNT(kolom tabel kanan)</code> agar hasilnya 0.</p></div></div></div><footer class="sf"><span>Bab 3</span><span>33 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Agregat bersyarat dengan CASE" aria-label="Slide 34: Agregat bersyarat dengan CASE">
+<div class="sb"><h2 class="st">Agregat bersyarat dengan CASE</h2><div class="sc"><pre class="code"><code>SELECT YEAR(h.OrderDate) AS Tahun,
+       SUM(CASE WHEN h.TotalDue >= 1000 THEN 1 ELSE 0 END) AS OrderBesar,
+       SUM(CASE WHEN h.TotalDue <  1000 THEN 1 ELSE 0 END) AS OrderKecil
+FROM   SalesLT.SalesOrderHeader AS h
+GROUP BY YEAR(h.OrderDate);</code></pre><p class="note-line">Satu query menghasilkan beberapa kategori sekaligus, tanpa perlu menjalankan query terpisah.</p></div></div><footer class="sf"><span>Bab 3</span><span>34 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Tiga pola laporan" aria-label="Slide 35: Tiga pola laporan">
+<div class="sb"><h2 class="st">Tiga pola laporan</h2><div class="sc"><div class="three"><div><h3>Total per kelompok</h3><p class="sm">JOIN ke master, <code>GROUP BY</code> nama kelompok, <code>SUM</code> nilainya</p></div><div><h3>Termasuk yang nol</h3><p class="sm"><code>LEFT JOIN</code> + <code>COUNT(kolom kanan)</code> agar master tanpa transaksi bernilai 0</p></div><div><h3>Peringkat teratas</h3><p class="sm"><code>TOP (n)</code> dengan <code>ORDER BY</code> hasil agregat</p></div></div><pre class="code"><code>SELECT TOP (5) p.Name, SUM(d.OrderQty) AS TotalTerjual
+FROM   SalesLT.SalesOrderDetail AS d
+JOIN   SalesLT.Product          AS p ON p.ProductID = d.ProductID
+GROUP BY p.Name
+ORDER BY TotalTerjual DESC;</code></pre></div></div><footer class="sf"><span>Bab 3</span><span>35 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="DISTINCT, GROUP BY, dan ROLLUP" aria-label="Slide 36: DISTINCT, GROUP BY, dan ROLLUP">
+<div class="sb"><h2 class="st">DISTINCT, GROUP BY, dan ROLLUP</h2><div class="sc"><div class="two"><div><h3>DISTINCT vs GROUP BY</h3><p>Untuk sekadar menghilangkan duplikat, hasilnya sama. Pilih <code>GROUP BY</code> jika butuh nilai agregat.</p><div class="box warn"><p class="box-l">Perhatian</p><p><code>SELECT DISTINCT</code> untuk "menghilangkan baris dobel" setelah JOIN sering menjadi tanda JOIN-nya keliru.</p></div></div><div><h3>ROLLUP (sekilas)</h3><pre class="code"><code>GROUP BY ROLLUP (
+    YEAR(OrderDate),
+    MONTH(OrderDate))</code></pre><p class="sm">Menambahkan baris subtotal dan total. Baris subtotal berisi NULL pada kolom yang diringkas.</p></div></div></div></div><footer class="sf"><span>Bab 3</span><span>36 / 58</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L3.3 dan L3.4" aria-label="Slide 37: Latihan L3.3 dan L3.4">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L3.3 dan L3.4</h2><div class="sc"><ol class=""><li><b>L3.3</b> Tiga produk dengan nilai penjualan tertinggi</li><li><b>L3.4</b> Pelanggan yang belum pernah melakukan order</li></ol><div class="timer" data-min="20"><span class="tm-d">20:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 3</span><span>37 / 58</span></footer>
+</section>
+<section class="slide k-handoff" data-title="Pembahasan L3.3 dan L3.4" aria-label="Slide 38: Pembahasan L3.3 dan L3.4">
+<div class="sb"><p class="tag act">Pembahasan</p><h2 class="st">Pembahasan L3.3 dan L3.4</h2><div class="sc"><div class="handoff"><p>Beralih ke</p><p class="hf-file">Catatan Trainer Hari 3</p><p class="hf-sheet">Kunci L3.3 dan L3.4</p></div></div></div><footer class="sf"><span>Bab 3</span><span>38 / 58</span></footer>
+</section>
+<section class="slide k-quiz" data-title="Cek pemahaman Bab 3" aria-label="Slide 39: Cek pemahaman Bab 3">
+<div class="sb"><p class="tag quiz">Cek pemahaman</p><h2 class="st">Cek pemahaman Bab 3</h2><div class="sc"><ol class=""><li>Kapan kondisi ditulis di <code>WHERE</code> dan kapan di <code>HAVING</code>?</li><li>Kenapa memakai <code>COUNT(DISTINCT h.SalesOrderID)</code> setelah JOIN ke detail?</li><li>Pelanggan tanpa order dihitung <code>COUNT(*)</code> sebagai 1. Bagaimana membuatnya 0?</li></ol></div></div><footer class="sf"><span>Bab 3</span><span>39 / 58</span></footer>
+</section>
+<section class="slide k-answer" data-title="Jawaban cek pemahaman Bab 3" aria-label="Slide 40: Jawaban cek pemahaman Bab 3">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Jawaban cek pemahaman Bab 3</h2><div class="sc"><ol class=""><li><code>WHERE</code> untuk menyaring baris sebelum pengelompokan; <code>HAVING</code> untuk menyaring kelompok berdasarkan hasil agregat.</li><li>Karena setiap order terulang sebanyak jumlah itemnya; <code>COUNT(*)</code> akan menghitung item, bukan order.</li><li>Pakai <code>COUNT(kolom dari tabel kanan)</code>, karena fungsi agregat mengabaikan NULL.</li></ol></div></div><footer class="sf"><span>Bab 3</span><span>40 / 58</span></footer>
+</section>
+<section class="slide k-divider" data-title="Window Function untuk Penomoran dan Pagination" aria-label="Slide 41: Window Function untuk Penomoran dan Pagination">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 4</p><table class="dv-t"><thead><tr><th colspan="2">Window Function untuk Penomoran dan Pagination</th></tr></thead><tbody><tr><td class="k">4.1</td><td>Konsep OVER()</td></tr><tr><td class="k">4.2</td><td>ROW_NUMBER dan PARTITION BY</td></tr><tr><td class="k">4.3</td><td>Pagination</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 4</span><span>41 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Konsep OVER()" aria-label="Slide 42: Konsep OVER()">
+<div class="sb"><h2 class="st">Konsep OVER()</h2><div class="sc"><div class="box def"><p class="box-l">Definisi</p><p><b>Window function</b> menghitung nilai atas sekumpulan baris <b>tanpa menghilangkan</b> baris detailnya. <code>GROUP BY</code> meringkas banyak baris menjadi satu; window function menambah kolom pada setiap baris.</p></div><pre class="code"><code>SELECT Name, ListPrice,
+       COUNT(*) OVER () AS TotalBaris
+FROM   SalesLT.Product
+WHERE  Color = 'Black';</code></pre><p class="note-line"><code>OVER ()</code> yang kosong berarti window-nya seluruh hasil query.</p></div></div><footer class="sf"><span>Bab 4</span><span>42 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="ROW_NUMBER dan PARTITION BY" aria-label="Slide 43: ROW_NUMBER dan PARTITION BY">
+<div class="sb"><h2 class="st">ROW_NUMBER dan PARTITION BY</h2><div class="sc"><div class="two"><div><pre class="code"><code>SELECT ROW_NUMBER() OVER (
+           ORDER BY ListPrice DESC) AS No,
+       Name, ListPrice
+FROM   SalesLT.Product
+ORDER BY ListPrice DESC;</code></pre></div><div><pre class="code"><code>SELECT h.CustomerID,
+       h.SalesOrderID,
+       ROW_NUMBER() OVER (
+           PARTITION BY h.CustomerID
+           ORDER BY h.OrderDate) AS OrderKe
+FROM   SalesLT.SalesOrderHeader AS h;</code></pre></div></div><ul class="sm"><li><code>ORDER BY</code> di dalam <code>OVER</code> wajib ada</li><li><code>PARTITION BY</code> memulai penomoran ulang di setiap kelompok</li><li>Nomornya dihitung setiap kali query dijalankan, jadi <b>bukan</b> identitas baris</li></ul></div></div><footer class="sf"><span>Bab 4</span><span>43 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Pagination lengkap dalam satu query" aria-label="Slide 44: Pagination lengkap dalam satu query">
+<div class="sb"><h2 class="st">Pagination lengkap dalam satu query</h2><div class="sc"><pre class="code"><code>DECLARE @Page INT = 2, @PageSize INT = 10;
+
+SELECT ROW_NUMBER() OVER (ORDER BY p.ListPrice DESC,
+                                   p.ProductID) AS No,
+       p.ProductID, p.Name, p.ListPrice,
+       COUNT(*) OVER () AS TotalBaris
+FROM   SalesLT.Product AS p
+WHERE  p.Color = 'Black'
+ORDER BY p.ListPrice DESC, p.ProductID
+OFFSET (@Page - 1) * @PageSize ROWS
+FETCH NEXT @PageSize ROWS ONLY;</code></pre><p class="note-line"><code>COUNT(*) OVER ()</code> dihitung <b>sebelum</b> <code>OFFSET ... FETCH</code>, jadi nilainya jumlah seluruh baris hasil filter. Aplikasi tidak perlu query kedua untuk menghitung jumlah halaman.</p></div></div><footer class="sf"><span>Bab 4</span><span>44 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Urutan yang pasti dan batas OFFSET" aria-label="Slide 45: Urutan yang pasti dan batas OFFSET">
+<div class="sb"><h2 class="st">Urutan yang pasti dan batas OFFSET</h2><div class="sc"><div class="box warn"><p class="box-l">Perhatian</p><p>Pagination wajib memakai <code>ORDER BY</code> yang <b>unik</b>. Jika banyak baris punya nilai pengurut sama, satu baris bisa muncul di dua halaman atau terlewat. Tambahkan primary key sebagai penentu terakhir.</p></div><ul class=""><li><code>OFFSET</code> besar tetap harus melewati baris sebelumnya, jadi halaman terakhir lebih lambat daripada halaman pertama</li><li>Untuk data sangat besar, pertimbangkan <i>keyset pagination</i>: menyaring berdasarkan nilai terakhir yang sudah ditampilkan</li><li>Dampak index terhadap query seperti ini dibahas di Hari 5</li></ul><p class="note-line sm">Sebelum <code>OFFSET ... FETCH</code> ada, pagination dilakukan dengan <code>ROW_NUMBER</code> bertingkat. Sekarang cukup: <code>ROW_NUMBER</code> untuk menampilkan nomor, <code>OFFSET ... FETCH</code> untuk memotong halaman.</p></div></div><footer class="sf"><span>Bab 4</span><span>45 / 58</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L3.5" aria-label="Slide 46: Latihan L3.5">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L3.5</h2><div class="sc"><p class="lead"><b>L3.5</b> Item order yang harga transaksinya berbeda dari harga produk saat ini.</p><p class="note-line sm">Petunjuk: bandingkan <code>OrderDetail.UnitPrice</code> dengan <code>Product.UnitPrice</code> setelah JOIN.</p><div class="timer" data-min="10"><span class="tm-d">10:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 4</span><span>46 / 58</span></footer>
+</section>
+<section class="slide k-answer" data-title="Pembahasan L3.5" aria-label="Slide 47: Pembahasan L3.5">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Pembahasan L3.5</h2><div class="sc"><table class="t "><thead><tr><th>OrderID</th><th>Produk</th><th>Harga transaksi</th><th>Harga saat ini</th></tr></thead><tbody><tr><td>3</td><td>Headset USB</td><td>350.000</td><td>375.000</td></tr></tbody></table><p class="note-line">Hanya 1 baris. Jika hasil peserta kosong, periksa apakah UnitPrice di OrderDetail terisi harga saat transaksi, bukan harga produk saat ini.</p></div></div><footer class="sf"><span>Bab 4</span><span>47 / 58</span></footer>
+</section>
+<section class="slide k-quiz" data-title="Cek pemahaman Bab 4" aria-label="Slide 48: Cek pemahaman Bab 4">
+<div class="sb"><p class="tag quiz">Cek pemahaman</p><h2 class="st">Cek pemahaman Bab 4</h2><div class="sc"><ol class=""><li>Kenapa <code>ORDER BY</code> di dalam <code>OVER</code> wajib untuk <code>ROW_NUMBER()</code>?</li><li>Kenapa <code>COUNT(*) OVER ()</code> tetap menampilkan total seluruh baris walaupun ada <code>OFFSET ... FETCH</code>?</li><li>Apa risikonya pagination dengan <code>ORDER BY UnitPrice</code> saja?</li></ol></div></div><footer class="sf"><span>Bab 4</span><span>48 / 58</span></footer>
+</section>
+<section class="slide k-answer" data-title="Jawaban cek pemahaman Bab 4" aria-label="Slide 49: Jawaban cek pemahaman Bab 4">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Jawaban cek pemahaman Bab 4</h2><div class="sc"><ol class=""><li>Nomor urut hanya bermakna jika urutan barisnya ditentukan.</li><li>Window function dihitung sebelum <code>OFFSET ... FETCH</code> memotong hasil akhir.</li><li>Baris dengan harga sama tidak punya urutan pasti, sehingga bisa muncul dua kali atau terlewat antar-halaman. Tambahkan kolom unik.</li></ol></div></div><footer class="sf"><span>Bab 4</span><span>49 / 58</span></footer>
+</section>
+<section class="slide k-divider" data-title="Set Operator" aria-label="Slide 50: Set Operator">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 5</p><table class="dv-t"><thead><tr><th colspan="2">Set Operator</th></tr></thead><tbody><tr><td class="k">5.1</td><td>UNION, UNION ALL, INTERSECT, EXCEPT</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 5</span><span>50 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="UNION, INTERSECT, dan EXCEPT" aria-label="Slide 51: UNION, INTERSECT, dan EXCEPT">
+<div class="sb"><h2 class="st">UNION, INTERSECT, dan EXCEPT</h2><div class="sc"><table class="t "><thead><tr><th>Operator</th><th>Hasil</th></tr></thead><tbody><tr><td><code>UNION</code></td><td>Gabungan kedua hasil, tanpa duplikat</td></tr><tr><td><code>UNION ALL</code></td><td>Gabungan apa adanya, termasuk duplikat. <b>Lebih cepat</b></td></tr><tr><td><code>INTERSECT</code></td><td>Hanya baris yang ada di kedua hasil</td></tr><tr><td><code>EXCEPT</code></td><td>Baris di hasil pertama yang tidak ada di hasil kedua</td></tr></tbody></table><pre class="code"><code>SELECT Name, 'Mahal' AS Segmen FROM SalesLT.Product WHERE ListPrice >= 1000
+UNION ALL
+SELECT Name, 'Murah' FROM SalesLT.Product WHERE ListPrice < 1000
+ORDER BY Segmen, Name;</code></pre></div></div><footer class="sf"><span>Bab 5</span><span>51 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Aturan set operator" aria-label="Slide 52: Aturan set operator">
+<div class="sb"><h2 class="st">Aturan set operator</h2><div class="sc"><ul class=""><li>Jumlah kolom kedua query harus <b>sama</b>, dan data type-nya kompatibel</li><li>Nama kolom hasil diambil dari query pertama</li><li><code>ORDER BY</code> hanya boleh ditulis sekali, di bagian paling akhir</li></ul><div class="box tip"><p class="box-l">Tips dari lapangan</p><p>Gunakan <code>UNION ALL</code> secara default. <code>UNION</code> hanya jika duplikat memang harus dihilangkan, karena prosesnya lebih berat.</p></div><p class="note-line sm">Set operator menggabungkan hasil secara <b>vertikal</b> (baris ke bawah); JOIN menggabungkan secara <b>horizontal</b> (kolom ke samping).</p></div></div><footer class="sf"><span>Bab 5</span><span>52 / 58</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan opsional L3.6 dan L3.7" aria-label="Slide 53: Latihan opsional L3.6 dan L3.7">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan opsional L3.6 dan L3.7</h2><div class="sc"><ol class=""><li><b>L3.6</b> Daftar produk dengan nomor urut, jumlah seluruh baris, dan pagination halaman ke-2 berisi 3 produk</li><li><b>L3.7</b> Riwayat order setiap pelanggan, diberi nomor urut order ke berapa bagi pelanggan tersebut</li></ol><p class="note-line sm">Untuk kamu yang sudah selesai lebih cepat. Tersedia juga lembar latihan JOIN dan agregasi dalam 10 variasi sebagai latihan tambahan.</p><div class="timer" data-min="15"><span class="tm-d">15:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Penutup</span><span>53 / 58</span></footer>
+</section>
+<section class="slide k-handoff" data-title="Pembahasan L3.6 dan L3.7" aria-label="Slide 54: Pembahasan L3.6 dan L3.7">
+<div class="sb"><p class="tag act">Pembahasan</p><h2 class="st">Pembahasan L3.6 dan L3.7</h2><div class="sc"><div class="handoff"><p>Beralih ke</p><p class="hf-file">Catatan Trainer Hari 3</p><p class="hf-sheet">Kunci L3.6 dan L3.7</p></div></div></div><footer class="sf"><span>Penutup</span><span>54 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Rangkuman Hari 3" aria-label="Slide 55: Rangkuman Hari 3">
+<div class="sb"><h2 class="st">Rangkuman Hari 3</h2><div class="sc"><div class="two"><div><ul class=""><li>INNER JOIN hanya yang cocok; LEFT JOIN mempertahankan tabel kiri</li><li>Filter tabel kanan pada LEFT JOIN ditulis di ON</li><li>Fan-out: satu baris hasil mewakili satu item, bukan satu order</li><li>Pola LEFT JOIN ... IS NULL untuk data tanpa pasangan</li><li>Hindari fungsi pada kolom di WHERE; pakai rentang tanggal</li></ul></div><div><ul class=""><li>WHERE menyaring baris, HAVING menyaring kelompok</li><li>Agregat mengabaikan NULL; COUNT(*) menghitung semua baris</li><li>CASE mengubah nilai menjadi kategori, juga di dalam agregat</li><li>ROW_NUMBER memberi nomor; PARTITION BY memulai ulang per kelompok</li><li>Pagination: OFFSET ... FETCH + COUNT(*) OVER () + ORDER BY unik</li></ul></div></div></div></div><footer class="sf"><span>Penutup</span><span>55 / 58</span></footer>
+</section>
+<section class="slide k-activity" data-title="Exit ticket" aria-label="Slide 56: Exit ticket">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Exit ticket</h2><div class="sc"><ol class=""><li>Sebutkan satu jebakan JOIN hari ini beserta cara menghindarinya.</li><li>Kapan kamu memakai <code>HAVING</code>, bukan <code>WHERE</code>?</li><li>Untuk pagination, apa gunanya <code>COUNT(*) OVER ()</code> dan kenapa <code>ORDER BY</code> harus unik?</li></ol><div class="timer" data-min="5"><span class="tm-d">05:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Penutup</span><span>56 / 58</span></footer>
+</section>
+<section class="slide k-content" data-title="Microsoft Learn dan persiapan Hari 4" aria-label="Slide 57: Microsoft Learn dan persiapan Hari 4">
+<div class="sb"><h2 class="st">Microsoft Learn dan persiapan Hari 4</h2><div class="sc"><div class="two"><div><h3>Microsoft Learn</h3><ul class=""><li><b>Combine multiple tables with JOINs in T-SQL</b></li><li><b>Use built-in functions and GROUP BY in Transact-SQL</b></li><li><b>Write Subqueries in T-SQL</b> — pengayaan mandiri, tidak dibahas di kelas, tetapi melengkapi trophy pertama</li></ul></div><div><h3>Hari 4</h3><ul class=""><li>View, function, stored procedure, trigger</li><li>Error handling dan transaksi</li><li>Simpan query latihan hari ini; sebagian akan dijadikan view dan stored procedure</li></ul></div></div></div></div><footer class="sf"><span>Penutup</span><span>57 / 58</span></footer>
+</section>
+<section class="slide k-cover" data-title="Tanya jawab" aria-label="Slide 58: Tanya jawab">
+<div class="sb"><div class="sc"><div class="end"><p class="end-t">Terima kasih</p><p class="muted">Sampai jumpa di Hari 4</p></div></div></div>
+</section>
+</div></div>
+<div id="bar" aria-hidden="true"><i></i></div>
+<nav id="nav" aria-label="Navigasi slide">
+  <button type="button" id="bPrev" aria-label="Slide sebelumnya">‹</button>
+  <button type="button" id="bNext" aria-label="Slide berikutnya">›</button>
+  <button type="button" id="bHelp" aria-label="Pintasan keyboard">?</button>
+</nav>
+<div id="help" role="dialog" aria-label="Pintasan keyboard"><div>
+  <table>
+    <tr><td><kbd>→</kbd> <kbd>Spasi</kbd> <kbd>PgDn</kbd></td><td>Slide berikutnya</td></tr>
+    <tr><td><kbd>←</kbd> <kbd>PgUp</kbd></td><td>Slide sebelumnya</td></tr>
+    <tr><td><kbd>Home</kbd> <kbd>End</kbd></td><td>Slide pertama / terakhir</td></tr>
+    <tr><td><kbd>F</kbd></td><td>Layar penuh</td></tr>
+    <tr><td><kbd>T</kbd></td><td>Mulai atau jeda timer di slide aktivitas</td></tr>
+    <tr><td><kbd>G</kbd></td><td>Pergi ke nomor slide</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Tutup panel ini</td></tr>
+  </table>
+  <p style="margin:14px 0 0;color:#5B6475">Untuk PDF: gunakan Print browser, lalu Save as PDF.</p>
+</div></div>
+<script src="script.js" defer></script>
+</body>
+</html>

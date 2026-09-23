@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hari 4 — Database Fundamental dengan SQL Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="stylesheet.css">
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<section class="slide k-cover" data-title="Database Fundamental dengan SQL Server" aria-label="Slide 1: Database Fundamental dengan SQL Server">
+<div class="sb"><div class="sc">
+<div class="cover">
+  <p class="cv-org">Metrodata Academy</p>
+  <h1 class="cv-title">Database Fundamental<br>dengan SQL Server</h1>
+  <table class="cv-meta"><tbody>
+    <tr><th>Program</th><td>Untuk Developer, 5 hari</td></tr>
+    <tr><th>Hari</th><td>4 dari 5</td></tr>
+    <tr><th>Topik</th><td>View, function, stored procedure, dan trigger</td></tr>
+  </tbody></table>
+</div></div></div>
+</section>
+<section class="slide k-content" data-title="Review Hari 3" aria-label="Slide 2: Review Hari 3">
+<div class="sb"><h2 class="st">Review Hari 3</h2><div class="sc"><ol class=""><li>Sebutkan satu jebakan JOIN dan cara menghindarinya.</li><li>Kapan memakai <code>HAVING</code>, bukan <code>WHERE</code>?</li><li>Untuk pagination, apa gunanya <code>COUNT(*) OVER ()</code>?</li></ol><p class="note-line">Query L3.1 (riwayat order per pelanggan) kita pakai lagi hari ini sebagai dasar view.</p></div></div><footer class="sf"><span>Pembukaan</span><span>2 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Dari query ke objek database" aria-label="Slide 3: Dari query ke objek database">
+<div class="sb"><h2 class="st">Dari query ke objek database</h2><div class="sc"><div class="two"><div class="card"><h3>Sampai Hari 3</h3><p>Query ditulis dan dijalankan langsung di jendela query. Logikanya ada di kepala kita masing-masing.</p></div><div class="card"><h3>Hari 4</h3><p>Logika yang sama <b>disimpan di dalam database</b> sebagai objek bernama: view, function, stored procedure, dan trigger. Objek inilah yang dipanggil aplikasi.</p></div></div><p class="ask">Kenapa aplikasi lebih aman memanggil stored procedure daripada mengirim query mentah?</p></div></div><footer class="sf"><span>Pembukaan</span><span>3 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Tujuan Hari 4" aria-label="Slide 4: Tujuan Hari 4">
+<div class="sb"><h2 class="st">Tujuan Hari 4</h2><div class="sc"><ol class="goals"><li>Memakai variabel, percabangan, dan perulangan dalam T-SQL</li><li>Membuat view dan memahami keterbatasannya</li><li>Membuat scalar function dan inline table-valued function</li><li>Membuat stored procedure dengan parameter input, default, dan OUTPUT</li><li>Menangani error dengan TRY ... CATCH dan THROW</li><li>Menjaga konsistensi data dengan transaksi</li><li>Membuat trigger yang benar, dan tahu kapan sebaiknya tidak memakai trigger</li></ol></div></div><footer class="sf"><span>Pembukaan</span><span>4 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Agenda hari ini" aria-label="Slide 5: Agenda hari ini">
+<div class="sb"><h2 class="st">Agenda hari ini</h2><div class="sc"><table class="t "><thead><tr><th>Bab</th><th>Topik</th><th>Latihan</th></tr></thead><tbody><tr><td>1</td><td>Dasar pemrograman T-SQL</td><td>—</td></tr><tr><td>2–3</td><td>View dan function</td><td>L4.1, L4.2</td></tr><tr><td>4</td><td>Stored procedure</td><td>—</td></tr><tr><td>5–6</td><td>Error handling dan transaksi</td><td>L4.3</td></tr><tr><td>7</td><td>Trigger</td><td>L4.4</td></tr><tr><td>8</td><td>Latihan opsional</td><td>L4.5, L4.6</td></tr></tbody></table></div></div><footer class="sf"><span>Pembukaan</span><span>5 / 63</span></footer>
+</section>
+<section class="slide k-divider" data-title="Dasar Pemrograman T-SQL" aria-label="Slide 6: Dasar Pemrograman T-SQL">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 1</p><table class="dv-t"><thead><tr><th colspan="2">Dasar Pemrograman T-SQL</th></tr></thead><tbody><tr><td class="k">1.1</td><td>Batch dan komentar</td></tr><tr><td class="k">1.2</td><td>Variabel</td></tr><tr><td class="k">1.3</td><td>IF dan BEGIN ... END</td></tr><tr><td class="k">1.4</td><td>Perulangan WHILE</td></tr><tr><td class="k">1.5</td><td>PRINT dan SELECT</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 1</span><span>6 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Batch dan GO" aria-label="Slide 7: Batch dan GO">
+<div class="sb"><h2 class="st">Batch dan GO</h2><div class="sc"><ul class=""><li>Variabel hanya hidup di dalam <b>satu batch</b>: setelah <code>GO</code>, variabel sebelumnya sudah tidak dikenal</li><li><code>CREATE VIEW</code>, <code>CREATE PROCEDURE</code>, <code>CREATE FUNCTION</code>, <code>CREATE TRIGGER</code>, dan <code>CREATE SCHEMA</code> wajib menjadi perintah pertama dalam batch-nya</li><li>Karena itu kamu akan sering melihat <code>GO</code> sebelum dan sesudah pembuatan objek</li></ul><pre class="code"><code>CREATE OR ALTER VIEW dbo.vw_Contoh
+AS
+SELECT 1 AS Angka;
+GO
+
+SELECT * FROM dbo.vw_Contoh;</code></pre></div></div><footer class="sf"><span>Bab 1</span><span>7 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Variabel" aria-label="Slide 8: Variabel">
+<div class="sb"><h2 class="st">Variabel</h2><div class="sc"><pre class="code"><code>DECLARE @NamaProduk NVARCHAR(50), @Harga DECIMAL(12,2);
+
+SET @NamaProduk = N'Mouse Wireless';
+
+SELECT @Harga = ListPrice
+FROM   SalesLT.Product
+WHERE  Name = N'HL Road Frame - Black, 58';
+
+SELECT @NamaProduk AS Produk, @Harga AS Harga;</code></pre></div></div><footer class="sf"><span>Bab 1</span><span>8 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="SET vs SELECT" aria-label="Slide 9: SET vs SELECT">
+<div class="sb"><h2 class="st">SET vs SELECT</h2><div class="sc"><table class="t "><thead><tr><th></th><th><code>SET</code></th><th><code>SELECT</code></th></tr></thead><tbody><tr><td>Jumlah variabel</td><td>Satu per perintah</td><td>Beberapa sekaligus</td></tr><tr><td>Query tanpa hasil</td><td>Variabel menjadi <b>NULL</b></td><td>Variabel <b>tidak berubah</b></td></tr><tr><td>Query banyak baris</td><td>Error</td><td>Diisi baris terakhir, tanpa peringatan</td></tr></tbody></table><div class="box warn"><p class="box-l">Perhatian</p><p>Untuk mengisi satu nilai dari query yang seharusnya menghasilkan tepat satu baris, gunakan <code>SET</code> agar kesalahan data langsung ketahuan.</p></div></div></div><footer class="sf"><span>Bab 1</span><span>9 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="IF dan BEGIN ... END" aria-label="Slide 10: IF dan BEGIN ... END">
+<div class="sb"><h2 class="st">IF dan BEGIN ... END</h2><div class="sc"><pre class="code"><code>IF @JumlahProduk > 0
+BEGIN
+    PRINT N'Kategori ini memiliki produk.';
+    SELECT TOP (3) Name, ListPrice FROM SalesLT.Product WHERE ProductCategoryID = 5;
+END
+ELSE
+    PRINT N'Kategori kosong.';</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p>Tanpa <code>BEGIN ... END</code>, hanya <b>satu perintah</b> berikutnya yang masuk cabang <code>IF</code>. Perintah kedua selalu dijalankan, dan ini sangat sulit terlihat.</p></div></div></div><footer class="sf"><span>Bab 1</span><span>10 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="WHILE dan PRINT" aria-label="Slide 11: WHILE dan PRINT">
+<div class="sb"><h2 class="st">WHILE dan PRINT</h2><div class="sc"><div class="two"><div><pre class="code"><code>DECLARE @i INT = 1;
+WHILE @i <= 3
+BEGIN
+    PRINT CONCAT(N'Putaran ke-', @i);
+    SET @i += 1;
+END</code></pre></div><div><table class="t sm"><thead><tr><th></th><th><code>PRINT</code></th><th><code>SELECT</code></th></tr></thead><tbody><tr><td>Muncul di</td><td>Messages</td><td>Results</td></tr><tr><td>Untuk</td><td>Pesan proses</td><td>Melihat nilai</td></tr></tbody></table><div class="box warn"><p class="box-l">Perhatian</p><p><code>WHILE</code> dan cursor memproses baris per baris. Untuk mengolah data, hampir selalu ada cara set-based yang jauh lebih cepat.</p></div></div></div><p class="note-line sm">Hapus <code>PRINT</code> dan <code>SELECT</code> penelusuran sebelum procedure dipakai aplikasi.</p></div></div><footer class="sf"><span>Bab 1</span><span>11 / 63</span></footer>
+</section>
+<section class="slide k-divider" data-title="View" aria-label="Slide 12: View">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 2</p><table class="dv-t"><thead><tr><th colspan="2">View</th></tr></thead><tbody><tr><td class="k">2.1</td><td>Membuat dan memakai view</td></tr><tr><td class="k">2.2</td><td>Kapan view dipakai</td></tr><tr><td class="k">2.3</td><td>Keterbatasan view</td></tr><tr><td class="k">2.4</td><td>Updatable view dan SCHEMABINDING</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 2</span><span>12 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Membuat dan memakai view" aria-label="Slide 13: Membuat dan memakai view">
+<div class="sb"><h2 class="st">Membuat dan memakai view</h2><div class="sc"><div class="box def"><p class="box-l">Definisi</p><p><b>View</b> adalah query yang disimpan di database dan diberi nama. Yang tersimpan hanya definisinya; datanya tetap diambil dari tabel asli setiap kali dipanggil.</p></div><pre class="code"><code>CREATE OR ALTER VIEW dbo.vw_ProductCatalog
+AS
+SELECT p.ProductID, p.Name AS ProductName, c.Name AS CategoryName, p.ListPrice
+FROM   SalesLT.Product         AS p
+JOIN   SalesLT.ProductCategory AS c ON c.ProductCategoryID = p.ProductCategoryID;
+GO
+
+SELECT * FROM dbo.vw_ProductCatalog WHERE CategoryName = N'Road Bikes';</code></pre></div></div><footer class="sf"><span>Bab 2</span><span>13 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Kapan view dipakai" aria-label="Slide 14: Kapan view dipakai">
+<div class="sb"><h2 class="st">Kapan view dipakai</h2><div class="sc"><ul class=""><li><b>Menyederhanakan query berulang</b>: JOIN yang sama dipakai banyak laporan cukup ditulis sekali</li><li><b>Membatasi kolom demi keamanan</b>: pengguna diberi akses ke view, bukan ke tabel aslinya</li><li><b>Memberi nama pada logika bisnis</b>: "ringkasan order" menjadi istilah bersama tim</li><li><b>Menjaga kompatibilitas</b>: struktur tabel berubah, definisi view disesuaikan, aplikasi lama tetap jalan</li></ul></div></div><footer class="sf"><span>Bab 2</span><span>14 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Keterbatasan view" aria-label="Slide 15: Keterbatasan view">
+<div class="sb"><h2 class="st">Keterbatasan view</h2><div class="sc"><ul class=""><li><b>Tidak menerima parameter.</b> Butuh parameter? Pakai inline table-valued function (Bab 3)</li><li><b><code>ORDER BY</code> tidak boleh</b> di dalam view (kecuali bersama TOP/OFFSET, dan urutannya tetap tidak dijamin). Urutkan di query pemanggil</li><li><b>Bukan penyimpanan data.</b> View tidak mempercepat query dengan sendirinya</li></ul><div class="box warn"><p class="box-l">Perhatian</p><p>Hindari view di atas view di atas view. Setiap lapisan menyembunyikan JOIN dan filter tambahan, sehingga query yang tampak sederhana ternyata menyentuh belasan tabel.</p></div></div></div><footer class="sf"><span>Bab 2</span><span>15 / 63</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L4.1" aria-label="Slide 16: Latihan L4.1">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L4.1</h2><div class="sc"><p class="lead"><b>L4.1</b> Buat view <code>dbo.vw_OrderSummary</code>: nomor order, tanggal, nama pelanggan, dan total nilai order.</p><p class="note-line sm">Dasarnya query L3.1 kemarin. Gunakan <code>CREATE OR ALTER</code>, lalu uji dengan <code>SELECT * FROM dbo.vw_OrderSummary ORDER BY OrderDate;</code></p><div class="timer" data-min="15"><span class="tm-d">15:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 2</span><span>16 / 63</span></footer>
+</section>
+<section class="slide k-answer" data-title="Pembahasan L4.1" aria-label="Slide 17: Pembahasan L4.1">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Pembahasan L4.1</h2><div class="sc"><pre class="code"><code>CREATE OR ALTER VIEW dbo.vw_OrderSummary
+AS
+SELECT  o.OrderID, o.OrderDate, c.CustomerName,
+        SUM(od.Quantity * od.UnitPrice) AS Total
+FROM    dbo.[Order]     AS o
+JOIN    dbo.Customer    AS c  ON c.CustomerID = o.CustomerID
+JOIN    dbo.OrderDetail AS od ON od.OrderID   = o.OrderID
+GROUP BY o.OrderID, o.OrderDate, c.CustomerName;</code></pre><p class="note-line sm">Hasil: 6 baris dengan total 2.150.000 / 900.000 / 1.050.000 / 346.000 / 548.000 / 4.450.000. <code>ORDER BY</code> tidak boleh di dalam view.</p></div></div><footer class="sf"><span>Bab 2</span><span>17 / 63</span></footer>
+</section>
+<section class="slide k-divider" data-title="User-Defined Function" aria-label="Slide 18: User-Defined Function">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 3</p><table class="dv-t"><thead><tr><th colspan="2">User-Defined Function</th></tr></thead><tbody><tr><td class="k">3.1</td><td>Scalar function</td></tr><tr><td class="k">3.2</td><td>Inline table-valued function</td></tr><tr><td class="k">3.3</td><td>Multi-statement TVF</td></tr><tr><td class="k">3.4</td><td>Kenapa scalar function lambat</td></tr><tr><td class="k">3.5</td><td>Function vs stored procedure</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 3</span><span>18 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Scalar function" aria-label="Slide 19: Scalar function">
+<div class="sb"><h2 class="st">Scalar function</h2><div class="sc"><pre class="code"><code>CREATE OR ALTER FUNCTION dbo.fn_HargaSetelahDiskon
+    (@Harga DECIMAL(12,2), @PersenDiskon DECIMAL(5,2))
+RETURNS DECIMAL(12,2)
+AS
+BEGIN
+    RETURN ROUND(@Harga * (1 - @PersenDiskon / 100), 2);
+END;
+GO
+
+SELECT Name, dbo.fn_HargaSetelahDiskon(ListPrice, 10) AS HargaDiskon
+FROM   SalesLT.Product;</code></pre><p class="note-line sm">Scalar function <b>wajib</b> dipanggil dengan nama dua bagian: <code>dbo.fn_...</code></p></div></div><footer class="sf"><span>Bab 3</span><span>19 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Inline table-valued function" aria-label="Slide 20: Inline table-valued function">
+<div class="sb"><h2 class="st">Inline table-valued function</h2><div class="sc"><pre class="code"><code>CREATE OR ALTER FUNCTION dbo.fn_ProductsByCategory (@ProductCategoryID INT)
+RETURNS TABLE
+AS
+RETURN
+    SELECT ProductID, Name, ListPrice
+    FROM   SalesLT.Product
+    WHERE  ProductCategoryID = @ProductCategoryID;
+GO
+
+SELECT * FROM dbo.fn_ProductsByCategory(5) ORDER BY ListPrice DESC;</code></pre><p class="ask">"View yang menerima parameter" — bentuk function yang paling disarankan.</p></div></div><footer class="sf"><span>Bab 3</span><span>20 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Kenapa scalar function bisa memperlambat query" aria-label="Slide 21: Kenapa scalar function bisa memperlambat query">
+<div class="sb"><h2 class="st">Kenapa scalar function bisa memperlambat query</h2><div class="sc"><p class="lead">Scalar function di <code>SELECT</code> atau <code>WHERE</code> dijalankan <b>untuk setiap baris</b>. Pada tabel jutaan baris, satu function sederhana bisa membuat query berkali-kali lebih lambat.</p><table class="t "><thead><tr><th>Situasi</th><th>Alternatif</th></tr></thead><tbody><tr><td>Perhitungan sederhana dari kolom yang ada</td><td>Tulis ekspresinya langsung, atau buat computed column</td></tr><tr><td>Function berisi query ke tabel lain</td><td>JOIN, atau inline table-valued function</td></tr><tr><td>Function dipakai di <code>WHERE</code></td><td>Hindari: index tidak bisa dipakai optimal</td></tr></tbody></table><p class="note-line sm">SQL Server 2019 ke atas punya <i>scalar UDF inlining</i> yang membantu di sebagian kasus, tetapi jangan bergantung padanya.</p></div></div><footer class="sf"><span>Bab 3</span><span>21 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Function vs stored procedure" aria-label="Slide 22: Function vs stored procedure">
+<div class="sb"><h2 class="st">Function vs stored procedure</h2><div class="sc"><table class="t "><thead><tr><th></th><th>Function</th><th>Stored procedure</th></tr></thead><tbody><tr><td>Dipanggil dari</td><td><code>SELECT</code>, <code>WHERE</code>, <code>JOIN</code></td><td>Perintah <code>EXEC</code> tersendiri</td></tr><tr><td>Mengembalikan</td><td>Satu nilai atau satu tabel</td><td>Result set + parameter OUTPUT</td></tr><tr><td>Boleh mengubah data</td><td><b>Tidak</b></td><td>Ya</td></tr><tr><td>Boleh <code>TRY ... CATCH</code></td><td>Tidak</td><td>Ya</td></tr><tr><td>Cocok untuk</td><td>Perhitungan, daftar berparameter</td><td>Proses bisnis: simpan order, ubah harga</td></tr></tbody></table></div></div><footer class="sf"><span>Bab 3</span><span>22 / 63</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L4.2" aria-label="Slide 23: Latihan L4.2">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L4.2</h2><div class="sc"><p class="lead"><b>L4.2</b> Buat inline table-valued function <code>dbo.fn_OrdersByCustomer(@CustomerID)</code>: daftar order milik satu pelanggan.</p><div class="timer" data-min="15"><span class="tm-d">15:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 3</span><span>23 / 63</span></footer>
+</section>
+<section class="slide k-answer" data-title="Pembahasan L4.2" aria-label="Slide 24: Pembahasan L4.2">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Pembahasan L4.2</h2><div class="sc"><pre class="code"><code>CREATE OR ALTER FUNCTION dbo.fn_OrdersByCustomer (@CustomerID INT)
+RETURNS TABLE
+AS
+RETURN
+    SELECT o.OrderID, o.OrderDate
+    FROM   dbo.[Order] AS o
+    WHERE  o.CustomerID = @CustomerID;
+GO
+
+SELECT * FROM dbo.fn_OrdersByCustomer(1);   -- 2 baris: order 1 dan 4</code></pre><p class="note-line sm">Tanpa <code>BEGIN ... END</code>, karena isinya satu perintah <code>SELECT</code>.</p></div></div><footer class="sf"><span>Bab 3</span><span>24 / 63</span></footer>
+</section>
+<section class="slide k-quiz" data-title="Cek pemahaman Bab 2 dan 3" aria-label="Slide 25: Cek pemahaman Bab 2 dan 3">
+<div class="sb"><p class="tag quiz">Cek pemahaman</p><h2 class="st">Cek pemahaman Bab 2 dan 3</h2><div class="sc"><ol class=""><li>Kamu perlu menampilkan order untuk satu pelanggan yang dipilih pengguna. Apakah view cocok?</li><li>Apakah membuat view membuat query lebih cepat?</li><li>Kamu perlu menyimpan order baru sekaligus mengurangi stok. Function atau stored procedure?</li></ol></div></div><footer class="sf"><span>Bab 3</span><span>25 / 63</span></footer>
+</section>
+<section class="slide k-answer" data-title="Jawaban cek pemahaman Bab 2 dan 3" aria-label="Slide 26: Jawaban cek pemahaman Bab 2 dan 3">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Jawaban cek pemahaman Bab 2 dan 3</h2><div class="sc"><ol class=""><li>Tidak, view tidak menerima parameter. Pakai inline table-valued function.</li><li>Tidak dengan sendirinya. View hanya menyimpan definisi query.</li><li>Stored procedure: function tidak boleh mengubah data dan tidak mendukung <code>TRY ... CATCH</code>.</li></ol></div></div><footer class="sf"><span>Bab 3</span><span>26 / 63</span></footer>
+</section>
+<section class="slide k-divider" data-title="Stored Procedure" aria-label="Slide 27: Stored Procedure">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 4</p><table class="dv-t"><thead><tr><th colspan="2">Stored Procedure</th></tr></thead><tbody><tr><td class="k">4.1</td><td>Membuat dan memanggil</td></tr><tr><td class="k">4.2</td><td>Parameter input, default, OUTPUT</td></tr><tr><td class="k">4.3</td><td>RETURN vs OUTPUT</td></tr><tr><td class="k">4.4</td><td>SET NOCOUNT ON</td></tr><tr><td class="k">4.5</td><td>Kenapa aplikasi memakainya</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 4</span><span>27 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Membuat dan memanggil" aria-label="Slide 28: Membuat dan memanggil">
+<div class="sb"><h2 class="st">Membuat dan memanggil</h2><div class="sc"><pre class="code"><code>CREATE OR ALTER PROCEDURE dbo.usp_ProductByCategory
+    @ProductCategoryID INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT ProductID, Name, ListPrice
+    FROM   SalesLT.Product
+    WHERE  ProductCategoryID = @ProductCategoryID
+    ORDER BY ListPrice DESC;
+END;
+GO
+
+EXEC dbo.usp_ProductByCategory @ProductCategoryID = 5;</code></pre><p class="note-line sm">Sebut nama parameter saat memanggil, bukan hanya urutannya.</p></div></div><footer class="sf"><span>Bab 4</span><span>28 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Parameter input, default, dan OUTPUT" aria-label="Slide 29: Parameter input, default, dan OUTPUT">
+<div class="sb"><h2 class="st">Parameter input, default, dan OUTPUT</h2><div class="sc"><pre class="code"><code>CREATE OR ALTER PROCEDURE dbo.usp_CariProduk
+    @Keyword     NVARCHAR(50),
+    @MaksHarga   DECIMAL(12,2) = NULL,   -- opsional
+    @JumlahHasil INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT ProductID, Name, ListPrice
+    FROM   SalesLT.Product
+    WHERE  Name LIKE N'%' + @Keyword + N'%'
+      AND  (@MaksHarga IS NULL OR ListPrice <= @MaksHarga);
+    SET @JumlahHasil = @@ROWCOUNT;
+END;</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p><code>OUTPUT</code> wajib ditulis di <b>dua tempat</b>: saat deklarasi dan saat memanggil. Lupa di pemanggilan berarti nilainya tidak kembali, tanpa pesan error.</p></div></div></div><footer class="sf"><span>Bab 4</span><span>29 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="RETURN vs OUTPUT dan SET NOCOUNT ON" aria-label="Slide 30: RETURN vs OUTPUT dan SET NOCOUNT ON">
+<div class="sb"><h2 class="st">RETURN vs OUTPUT dan SET NOCOUNT ON</h2><div class="sc"><div class="two"><div><table class="t sm"><thead><tr><th></th><th><code>RETURN</code></th><th><code>OUTPUT</code></th></tr></thead><tbody><tr><td>Jenis nilai</td><td>Hanya INT</td><td>Apa pun</td></tr><tr><td>Jumlah</td><td>Satu</td><td>Beberapa</td></tr><tr><td>Untuk</td><td>Kode status</td><td>Mengembalikan data</td></tr></tbody></table></div><div><h3>SET NOCOUNT ON</h3><ul class=""><li>Mematikan pesan "n rows affected"</li><li>Mengurangi lalu lintas jaringan</li><li>Mencegah aplikasi salah membaca pesan sebagai hasil query</li><li><code>@@ROWCOUNT</code> tetap berfungsi</li></ul></div></div></div></div><footer class="sf"><span>Bab 4</span><span>30 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Kenapa aplikasi memakai stored procedure" aria-label="Slide 31: Kenapa aplikasi memakai stored procedure">
+<div class="sb"><h2 class="st">Kenapa aplikasi memakai stored procedure</h2><div class="sc"><table class="t "><thead><tr><th>Alasan</th><th>Penjelasan</th></tr></thead><tbody><tr><td><b>Keamanan</b></td><td>Aplikasi cukup diberi hak <code>EXECUTE</code>, tanpa akses langsung ke tabel</td></tr><tr><td><b>Aman dari SQL injection</b></td><td>Nilai masuk sebagai parameter, bukan digabungkan sebagai teks perintah</td></tr><tr><td><b>Logika terpusat</b></td><td>Aturan bisnis ditulis sekali, dipakai semua aplikasi</td></tr><tr><td><b>Rencana eksekusi dipakai ulang</b></td><td>Tidak perlu disusun ulang setiap pemanggilan</td></tr><tr><td><b>Perubahan tanpa deploy ulang</b></td><td>Perbaikan query cukup di database</td></tr></tbody></table><p class="note-line sm">Sisi lain: <i>parameter sniffing</i> membuat procedure bisa cepat untuk satu nilai parameter dan lambat untuk nilai lain (Hari 5).</p></div></div><footer class="sf"><span>Bab 4</span><span>31 / 63</span></footer>
+</section>
+<section class="slide k-divider" data-title="Error Handling" aria-label="Slide 32: Error Handling">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 5</p><table class="dv-t"><thead><tr><th colspan="2">Error Handling</th></tr></thead><tbody><tr><td class="k">5.1</td><td>TRY ... CATCH</td></tr><tr><td class="k">5.2</td><td>THROW dan RAISERROR</td></tr><tr><td class="k">5.3</td><td>Error yang tidak tertangkap</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 5</span><span>32 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="TRY ... CATCH" aria-label="Slide 33: TRY ... CATCH">
+<div class="sb"><h2 class="st">TRY ... CATCH</h2><div class="sc"><pre class="code"><code>BEGIN TRY
+    DECLARE @hasil INT = 10 / 0;      -- Msg 8134: Divide by zero
+END TRY
+BEGIN CATCH
+    SELECT ERROR_NUMBER()    AS Nomor,
+           ERROR_MESSAGE()   AS Pesan,
+           ERROR_LINE()      AS Baris,
+           ERROR_PROCEDURE() AS Prosedur;
+END CATCH</code></pre></div></div><footer class="sf"><span>Bab 5</span><span>33 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="THROW dan RAISERROR" aria-label="Slide 34: THROW dan RAISERROR">
+<div class="sb"><h2 class="st">THROW dan RAISERROR</h2><div class="sc"><table class="t sm"><thead><tr><th></th><th><code>THROW</code></th><th><code>RAISERROR</code></th></tr></thead><tbody><tr><td>Ketersediaan</td><td>SQL Server 2012 ke atas; <b>disarankan</b></td><td>Versi lama, masih didukung</td></tr><tr><td>Nomor error sendiri</td><td>Wajib ≥ 50000</td><td>Wajib ≥ 50000</td></tr><tr><td>Melempar ulang</td><td><code>THROW;</code> tanpa argumen di <code>CATCH</code></td><td>Harus menyusun ulang pesannya</td></tr></tbody></table><pre class="code"><code>THROW 50001, N'Stok tidak mencukupi.', 1;   -- error aturan bisnis
+
+BEGIN CATCH
+    THROW;      -- lempar ulang error asli
+END CATCH</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p>Perintah sebelum <code>THROW</code> harus diakhiri titik koma.</p></div></div></div><footer class="sf"><span>Bab 5</span><span>34 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Error yang tidak tertangkap TRY ... CATCH" aria-label="Slide 35: Error yang tidak tertangkap TRY ... CATCH">
+<div class="sb"><h2 class="st">Error yang tidak tertangkap TRY ... CATCH</h2><div class="sc"><ul class=""><li><b>Kesalahan sintaks</b>: batch-nya tidak bisa dikompilasi</li><li><b>Nama objek salah</b> pada perintah di batch yang sama</li><li><b>Severity 20 ke atas</b> yang memutus koneksi</li></ul><p class="note-line"><code>TRY ... CATCH</code> menangani kesalahan <b>saat berjalan</b> (constraint, pembagian nol, konversi gagal), bukan pengganti pengujian script.</p></div></div><footer class="sf"><span>Bab 5</span><span>35 / 63</span></footer>
+</section>
+<section class="slide k-divider" data-title="Transaksi" aria-label="Slide 36: Transaksi">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 6</p><table class="dv-t"><thead><tr><th colspan="2">Transaksi</th></tr></thead><tbody><tr><td class="k">6.1</td><td>ACID dan perintah dasar</td></tr><tr><td class="k">6.2</td><td>@@TRANCOUNT dan transaksi bersarang</td></tr><tr><td class="k">6.3</td><td>XACT_ABORT dan XACT_STATE</td></tr><tr><td class="k">6.4</td><td>Pola baku procedure</td></tr><tr><td class="k">6.5</td><td>Transaksi yang terlalu panjang</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 6</span><span>36 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="ACID dan perintah dasar" aria-label="Slide 37: ACID dan perintah dasar">
+<div class="sb"><h2 class="st">ACID dan perintah dasar</h2><div class="sc"><div class="two"><div><table class="t sm"><thead><tr><th>Sifat</th><th>Artinya</th></tr></thead><tbody><tr><td><b>A</b>tomicity</td><td>Semua berhasil atau tidak satu pun</td></tr><tr><td><b>C</b>onsistency</td><td>Semua constraint tetap terpenuhi</td></tr><tr><td><b>I</b>solation</td><td>Transaksi tidak saling mengacaukan (Hari 5)</td></tr><tr><td><b>D</b>urability</td><td>Setelah COMMIT, perubahan tetap ada</td></tr></tbody></table></div><div><pre class="code"><code>BEGIN TRAN;
+    UPDATE dbo.Rekening SET Saldo = Saldo - 100000
+    WHERE  RekeningID = 1;
+
+    UPDATE dbo.Rekening SET Saldo = Saldo + 100000
+    WHERE  RekeningID = 2;
+COMMIT;</code></pre></div></div><p class="note-line sm">Transfer dana: kedua perintah harus berhasil bersama, kalau tidak uang hilang atau tercipta dari ketiadaan.</p></div></div><footer class="sf"><span>Bab 6</span><span>37 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="@@TRANCOUNT dan transaksi bersarang" aria-label="Slide 38: @@TRANCOUNT dan transaksi bersarang">
+<div class="sb"><h2 class="st">@@TRANCOUNT dan transaksi bersarang</h2><div class="sc"><table class="t "><thead><tr><th>Perintah</th><th>Pengaruh ke <code>@@TRANCOUNT</code></th><th>Efek sebenarnya</th></tr></thead><tbody><tr><td><code>BEGIN TRAN</code></td><td>Bertambah 1</td><td>Hanya yang pertama benar-benar membuka transaksi</td></tr><tr><td><code>COMMIT</code></td><td>Berkurang 1</td><td>Data tersimpan saat mencapai 0</td></tr><tr><td><code>ROLLBACK</code></td><td>Langsung 0</td><td><b>Seluruh</b> transaksi dibatalkan</td></tr></tbody></table><div class="box warn"><p class="box-l">Perhatian</p><p>SQL Server tidak benar-benar mendukung transaksi bersarang. Procedure yang memanggil <code>ROLLBACK</code> membatalkan pekerjaan pemanggilnya juga.</p></div></div></div><footer class="sf"><span>Bab 6</span><span>38 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="XACT_ABORT dan XACT_STATE" aria-label="Slide 39: XACT_ABORT dan XACT_STATE">
+<div class="sb"><h2 class="st">XACT_ABORT dan XACT_STATE</h2><div class="sc"><ul class=""><li>Secara default, sebagian error <b>tidak</b> membatalkan transaksi: perintah berikutnya tetap berjalan (kamu melihatnya di L2.6)</li><li><code>SET XACT_ABORT ON</code>: hampir semua error langsung membatalkan seluruh transaksi. Praktik baku untuk procedure yang mengubah data</li><li><code>XACT_STATE()</code>: <code>1</code> masih bisa di-commit, <code>-1</code> harus di-rollback, <code>0</code> tidak ada transaksi</li></ul></div></div><footer class="sf"><span>Bab 6</span><span>39 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Pola baku procedure dengan transaksi" aria-label="Slide 40: Pola baku procedure dengan transaksi">
+<div class="sb"><h2 class="st">Pola baku procedure dengan transaksi</h2><div class="sc"><pre class="code"><code>CREATE OR ALTER PROCEDURE dbo.usp_Contoh @Param INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRY
+        BEGIN TRAN;
+            -- perubahan data
+            -- validasi; jika dilanggar: THROW 50010, N'...', 1;
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK;
+        THROW;                    -- teruskan error asli
+    END CATCH
+END;</code></pre><p class="ask">Hafalkan kerangka ini.</p></div></div><footer class="sf"><span>Bab 6</span><span>40 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Transaksi yang terlalu panjang" aria-label="Slide 41: Transaksi yang terlalu panjang">
+<div class="sb"><h2 class="st">Transaksi yang terlalu panjang</h2><div class="sc"><div class="box warn"><p class="box-l">Perhatian</p><p>Selama transaksi terbuka, baris yang diubah <b>terkunci</b> dan pengguna lain menunggu.</p></div><ul class=""><li>Jangan menunggu respons API, membaca file, atau meminta konfirmasi pengguna di tengah transaksi</li><li>Jangan membuka transaksi di aplikasi lalu membiarkannya menunggu input</li><li>Lakukan pembacaan dan persiapan <b>sebelum</b> <code>BEGIN TRAN</code></li></ul><p class="note-line sm">Dampaknya terhadap pengguna lain (blocking dan deadlock) dibahas di Hari 5.</p></div></div><footer class="sf"><span>Bab 6</span><span>41 / 63</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L4.3" aria-label="Slide 42: Latihan L4.3">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L4.3</h2><div class="sc"><p class="lead"><b>L4.3</b> Buat stored procedure <code>dbo.usp_CreateOrder</code>.</p><ul class=""><li>Parameter: <code>@CustomerID</code>, <code>@ProductID</code>, <code>@Quantity</code>, dan <code>@NewOrderID</code> OUTPUT</li><li>Validasi stok mencukupi; jika tidak: <code>THROW 50001</code></li><li>Buat order, tambahkan item dengan harga produk saat ini, lalu kurangi stok</li><li>Gunakan transaksi dan <code>TRY ... CATCH</code></li><li>Uji dua kali: satu berhasil, satu dengan jumlah melebihi stok</li></ul><div class="timer" data-min="30"><span class="tm-d">30:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 6</span><span>42 / 63</span></footer>
+</section>
+<section class="slide k-answer" data-title="Pembahasan L4.3 (1/2)" aria-label="Slide 43: Pembahasan L4.3 (1/2)">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Pembahasan L4.3 (1/2)</h2><div class="sc"><pre class="code"><code>CREATE OR ALTER PROCEDURE dbo.usp_CreateOrder
+    @CustomerID INT, @ProductID INT, @Quantity INT,
+    @NewOrderID INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        IF NOT EXISTS (SELECT 1 FROM dbo.Product
+                       WHERE ProductID = @ProductID AND Stock >= @Quantity)
+            THROW 50001, N'Stok tidak mencukupi.', 1;</code></pre><p class="note-line sm">Validasi ditulis <b>di dalam</b> transaksi, sebelum data diubah.</p></div></div><footer class="sf"><span>Bab 6</span><span>43 / 63</span></footer>
+</section>
+<section class="slide k-answer" data-title="Pembahasan L4.3 (2/2)" aria-label="Slide 44: Pembahasan L4.3 (2/2)">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Pembahasan L4.3 (2/2)</h2><div class="sc"><pre class="code"><code>        INSERT INTO dbo.[Order] (CustomerID) VALUES (@CustomerID);
+        SET @NewOrderID = SCOPE_IDENTITY();
+        INSERT INTO dbo.OrderDetail (OrderID, ProductID, Quantity, UnitPrice)
+        SELECT @NewOrderID, ProductID, @Quantity, UnitPrice
+        FROM   dbo.Product WHERE ProductID = @ProductID;
+        UPDATE dbo.Product SET Stock = Stock - @Quantity
+        WHERE  ProductID = @ProductID;
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK;
+        THROW;
+    END CATCH
+END;</code></pre><p class="note-line sm">Pemanggilan pertama mengembalikan OrderID 7; jumlah melebihi stok gagal Msg 50001 tanpa order setengah jadi.</p></div></div><footer class="sf"><span>Bab 6</span><span>44 / 63</span></footer>
+</section>
+<section class="slide k-quiz" data-title="Cek pemahaman Bab 4–6" aria-label="Slide 45: Cek pemahaman Bab 4–6">
+<div class="sb"><p class="tag quiz">Cek pemahaman</p><h2 class="st">Cek pemahaman Bab 4–6</h2><div class="sc"><ol class=""><li>Kenapa <code>SET NOCOUNT ON</code> hampir selalu ditulis di awal procedure?</li><li>Apa yang dilakukan <code>THROW;</code> tanpa argumen di dalam <code>CATCH</code>?</li><li>Procedure memanggil <code>ROLLBACK</code> padahal dipanggil dari transaksi lain. Akibatnya?</li></ol></div></div><footer class="sf"><span>Bab 6</span><span>45 / 63</span></footer>
+</section>
+<section class="slide k-answer" data-title="Jawaban cek pemahaman Bab 4–6" aria-label="Slide 46: Jawaban cek pemahaman Bab 4–6">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Jawaban cek pemahaman Bab 4–6</h2><div class="sc"><ol class=""><li>Mematikan pesan "n rows affected" yang menambah lalu lintas jaringan dan bisa membingungkan aplikasi. <code>@@ROWCOUNT</code> tetap berfungsi.</li><li>Melempar ulang error asli beserta nomor dan pesannya.</li><li>Seluruh transaksi dibatalkan, termasuk pekerjaan pemanggilnya.</li></ol></div></div><footer class="sf"><span>Bab 6</span><span>46 / 63</span></footer>
+</section>
+<section class="slide k-divider" data-title="Trigger" aria-label="Slide 47: Trigger">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 7</p><table class="dv-t"><thead><tr><th colspan="2">Trigger</th></tr></thead><tbody><tr><td class="k">7.1</td><td>AFTER vs INSTEAD OF</td></tr><tr><td class="k">7.2</td><td>inserted dan deleted</td></tr><tr><td class="k">7.3</td><td>Wajib menangani banyak baris</td></tr><tr><td class="k">7.4</td><td>Contoh audit harga</td></tr><tr><td class="k">7.5</td><td>Trigger di dalam transaksi</td></tr><tr><td class="k">7.6–7.7</td><td>Risiko dan kapan bukan trigger</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 7</span><span>47 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Pengertian trigger" aria-label="Slide 48: Pengertian trigger">
+<div class="sb"><h2 class="st">Pengertian trigger</h2><div class="sc"><div class="box def"><p class="box-l">Definisi</p><p><b>Trigger</b> adalah kode yang dijalankan <b>otomatis</b> saat terjadi INSERT, UPDATE, atau DELETE pada sebuah tabel. Tidak ada yang memanggilnya secara eksplisit.</p></div><table class="t "><thead><tr><th>Jenis</th><th>Kapan berjalan</th><th>Dipakai untuk</th></tr></thead><tbody><tr><td><code>AFTER</code> (default)</td><td>Setelah perubahan diterapkan, sebelum transaksi selesai</td><td>Audit, validasi lintas tabel</td></tr><tr><td><code>INSTEAD OF</code></td><td><b>Menggantikan</b> perintah aslinya</td><td>Membuat view dengan JOIN bisa di-update</td></tr></tbody></table></div></div><footer class="sf"><span>Bab 7</span><span>48 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="inserted dan deleted" aria-label="Slide 49: inserted dan deleted">
+<div class="sb"><h2 class="st">inserted dan deleted</h2><div class="sc"><table class="t "><thead><tr><th>Perintah</th><th><code>inserted</code></th><th><code>deleted</code></th></tr></thead><tbody><tr><td><code>INSERT</code></td><td>Baris baru</td><td>Kosong</td></tr><tr><td><code>UPDATE</code></td><td>Nilai <b>sesudah</b></td><td>Nilai <b>sebelum</b></td></tr><tr><td><code>DELETE</code></td><td>Kosong</td><td>Baris yang dihapus</td></tr></tbody></table><p class="note-line">Kedua tabel virtual ini hanya ada di dalam trigger, isinya sama seperti klausa <code>OUTPUT</code> di Hari 2.</p></div></div><footer class="sf"><span>Bab 7</span><span>49 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Trigger wajib menangani banyak baris" aria-label="Slide 50: Trigger wajib menangani banyak baris">
+<div class="sb"><h2 class="st">Trigger wajib menangani banyak baris</h2><div class="sc"><pre class="code"><code>-- SALAH: hanya satu baris
+DECLARE @ProductID INT;
+SELECT @ProductID = ProductID FROM inserted;   -- baris terakhir saja
+
+-- BENAR: perlakukan sebagai kumpulan baris
+INSERT INTO dbo.ProductListPriceAudit (ProductID, OldPrice, NewPrice)
+SELECT d.ProductID, d.ListPrice, i.ListPrice
+FROM   deleted  AS d
+JOIN   inserted AS i ON i.ProductID = d.ProductID
+WHERE  d.ListPrice <> i.ListPrice;</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p>Trigger berjalan <b>sekali per perintah</b>, bukan per baris. Satu <code>UPDATE</code> yang mengubah 100 baris membuat <code>inserted</code> dan <code>deleted</code> berisi 100 baris.</p></div></div></div><footer class="sf"><span>Bab 7</span><span>50 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Contoh: audit perubahan harga" aria-label="Slide 51: Contoh: audit perubahan harga">
+<div class="sb"><h2 class="st">Contoh: audit perubahan harga</h2><div class="sc"><pre class="code"><code>CREATE OR ALTER TRIGGER SalesLT.trg_Product_ListPriceAudit
+ON SalesLT.Product
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(ListPrice) RETURN;    -- keluar jika harga tidak diubah
+
+    INSERT INTO dbo.ProductListPriceAudit (ProductID, OldPrice, NewPrice)
+    SELECT d.ProductID, d.ListPrice, i.ListPrice
+    FROM   deleted  AS d
+    JOIN   inserted AS i ON i.ProductID = d.ProductID
+    WHERE  d.ListPrice <> i.ListPrice;
+END;</code></pre></div></div><footer class="sf"><span>Bab 7</span><span>51 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Trigger berjalan di dalam transaksi yang sama" aria-label="Slide 52: Trigger berjalan di dalam transaksi yang sama">
+<div class="sb"><h2 class="st">Trigger berjalan di dalam transaksi yang sama</h2><div class="sc"><ul class=""><li>Jika transaksi di-rollback, baris audit yang ditulis trigger <b>ikut dibatalkan</b></li><li><code>ROLLBACK</code> di dalam trigger membatalkan seluruh perintah pemicunya</li><li>Trigger yang berat membuat setiap INSERT dan UPDATE melambat, dan transaksi lebih lama terbuka</li></ul><div class="box tip"><p class="box-l">Tips dari lapangan</p><p>Butuh catatan audit yang tetap ada walaupun transaksi dibatalkan? Trigger bukan alatnya; gunakan proses terpisah di luar transaksi.</p></div></div></div><footer class="sf"><span>Bab 7</span><span>52 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Risiko trigger dan kapan bukan trigger" aria-label="Slide 53: Risiko trigger dan kapan bukan trigger">
+<div class="sb"><h2 class="st">Risiko trigger dan kapan bukan trigger</h2><div class="sc"><div class="two"><div><h3>Risiko</h3><ul class=""><li>Logika tersembunyi: satu UPDATE sederhana diam-diam mengubah tabel lain</li><li>Trigger berantai yang sulit diikuti</li><li>Beban performa di setiap perubahan data</li><li>Sulit diuji: hanya bisa lewat perintah pemicunya</li></ul></div><div><h3>Pakai alat lain untuk</h3><table class="t sm"><thead><tr><th>Kebutuhan</th><th>Alat</th></tr></thead><tbody><tr><td>Nilai tidak boleh negatif</td><td><code>CHECK</code></td></tr><tr><td>Tidak boleh ganda</td><td><code>UNIQUE</code></td></tr><tr><td>Rujukan harus ada</td><td><code>FOREIGN KEY</code></td></tr><tr><td>Nilai otomatis</td><td><code>DEFAULT</code></td></tr><tr><td>Dihitung dari kolom lain</td><td>Computed column</td></tr><tr><td>Proses bisnis bertahap</td><td><b>Stored procedure</b></td></tr></tbody></table></div></div><p class="note-line sm">Batasi trigger untuk <b>audit</b> dan <b>validasi yang wajib selalu berlaku</b>.</p></div></div><footer class="sf"><span>Bab 7</span><span>53 / 63</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L4.4" aria-label="Slide 54: Latihan L4.4">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L4.4</h2><div class="sc"><p class="lead"><b>L4.4</b> Buat tabel <code>dbo.ProductPriceAudit</code> dan trigger <code>dbo.trg_Product_PriceAudit</code> untuk mencatat perubahan <code>UnitPrice</code>.</p><ul class=""><li>Kolom audit: ProductID, OldPrice, NewPrice, ChangedAt, ChangedBy</li><li>Uji dengan satu <code>UPDATE</code> yang mengubah harga <b>beberapa produk sekaligus</b></li><li>Periksa berapa baris yang masuk ke tabel audit</li></ul><div class="timer" data-min="25"><span class="tm-d">25:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 7</span><span>54 / 63</span></footer>
+</section>
+<section class="slide k-answer" data-title="Pembahasan L4.4 (1/2)" aria-label="Slide 55: Pembahasan L4.4 (1/2)">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Pembahasan L4.4 (1/2)</h2><div class="sc"><pre class="code"><code>DROP TABLE IF EXISTS dbo.ProductPriceAudit;
+GO
+CREATE TABLE dbo.ProductPriceAudit (
+    AuditID   INT IDENTITY(1,1) CONSTRAINT PK_ProductPriceAudit PRIMARY KEY,
+    ProductID INT           NOT NULL,
+    OldPrice  DECIMAL(12,2) NOT NULL,
+    NewPrice  DECIMAL(12,2) NOT NULL,
+    ChangedAt DATETIME2     NOT NULL
+        CONSTRAINT DF_PPA_ChangedAt DEFAULT SYSDATETIME(),
+    ChangedBy SYSNAME       NOT NULL
+        CONSTRAINT DF_PPA_ChangedBy DEFAULT SUSER_SNAME()
+);</code></pre></div></div><footer class="sf"><span>Bab 7</span><span>55 / 63</span></footer>
+</section>
+<section class="slide k-answer" data-title="Pembahasan L4.4 (2/2)" aria-label="Slide 56: Pembahasan L4.4 (2/2)">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Pembahasan L4.4 (2/2)</h2><div class="sc"><pre class="code"><code>CREATE OR ALTER TRIGGER dbo.trg_Product_PriceAudit
+ON dbo.Product
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(UnitPrice) RETURN;
+    INSERT INTO dbo.ProductPriceAudit (ProductID, OldPrice, NewPrice)
+    SELECT d.ProductID, d.UnitPrice, i.UnitPrice
+    FROM   deleted  AS d
+    JOIN   inserted AS i ON i.ProductID = d.ProductID
+    WHERE  d.UnitPrice <> i.UnitPrice;
+END;
+GO
+UPDATE dbo.Product SET UnitPrice = UnitPrice * 1.05 WHERE CategoryID = 2;
+SELECT * FROM dbo.ProductPriceAudit;      -- harus 2 baris</code></pre></div></div><footer class="sf"><span>Bab 7</span><span>56 / 63</span></footer>
+</section>
+<section class="slide k-quiz" data-title="Cek pemahaman Bab 7" aria-label="Slide 57: Cek pemahaman Bab 7">
+<div class="sb"><p class="tag quiz">Cek pemahaman</p><h2 class="st">Cek pemahaman Bab 7</h2><div class="sc"><ol class=""><li>Satu <code>UPDATE</code> mengubah 50 baris. Berapa kali trigger berjalan dan berapa baris di <code>inserted</code>?</li><li>Aturan "stok tidak boleh negatif" ditangani dengan apa?</li><li>Kenapa baris audit yang ditulis trigger bisa hilang?</li></ol></div></div><footer class="sf"><span>Bab 7</span><span>57 / 63</span></footer>
+</section>
+<section class="slide k-answer" data-title="Jawaban cek pemahaman Bab 7" aria-label="Slide 58: Jawaban cek pemahaman Bab 7">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Jawaban cek pemahaman Bab 7</h2><div class="sc"><ol class=""><li>Trigger berjalan sekali; <code>inserted</code> berisi 50 baris.</li><li><code>CHECK</code> constraint, bukan trigger.</li><li>Trigger berjalan di transaksi yang sama; jika transaksi di-rollback, baris audit ikut dibatalkan.</li></ol></div></div><footer class="sf"><span>Bab 7</span><span>58 / 63</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan opsional L4.5 dan L4.6" aria-label="Slide 59: Latihan opsional L4.5 dan L4.6">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan opsional L4.5 dan L4.6</h2><div class="sc"><ol class=""><li><b>L4.5</b> Stored procedure pencarian produk dengan paging: parameter kata kunci, nomor halaman, dan ukuran halaman; kembalikan daftar produk beserta jumlah seluruh baris</li><li><b>L4.6</b> Stored procedure menaikkan harga satu kategori dengan validasi persentase (-50 sampai 100) dan keberadaan kategori</li></ol><p class="note-line sm">Tersedia juga lembar latihan 10 variasi berisi satu view, satu function, dan satu stored procedure per peserta.</p><div class="timer" data-min="20"><span class="tm-d">20:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Penutup</span><span>59 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Rangkuman Hari 4" aria-label="Slide 60: Rangkuman Hari 4">
+<div class="sb"><h2 class="st">Rangkuman Hari 4</h2><div class="sc"><div class="two"><div><ul class=""><li>Variabel hidup dalam satu batch; SET lebih aman daripada SELECT</li><li>Selalu pakai BEGIN ... END setelah IF</li><li>View tidak menerima parameter dan tidak mempercepat query</li><li>Inline TVF adalah "view berparameter"; scalar function dijalankan per baris</li><li>Procedure: SET NOCOUNT ON dan SET XACT_ABORT ON</li></ul></div><div><ul class=""><li>OUTPUT untuk mengembalikan data; THROW ≥ 50000 untuk aturan bisnis</li><li>TRY ... CATCH menangkap error saat berjalan, bukan sintaks</li><li>Pola baku: TRY + TRAN + validasi + COMMIT; CATCH: ROLLBACK + THROW</li><li>ROLLBACK membatalkan seluruh transaksi, termasuk yang terluar</li><li>Trigger sekali per perintah; batasi untuk audit dan validasi wajib</li></ul></div></div></div></div><footer class="sf"><span>Penutup</span><span>60 / 63</span></footer>
+</section>
+<section class="slide k-activity" data-title="Exit ticket" aria-label="Slide 61: Exit ticket">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Exit ticket</h2><div class="sc"><ol class=""><li>Kapan kamu memilih stored procedure, dan kapan function?</li><li>Tuliskan kerangka stored procedure yang aman untuk mengubah data.</li><li>Sebutkan satu risiko trigger dan cara menghindarinya.</li></ol><div class="timer" data-min="5"><span class="tm-d">05:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Penutup</span><span>61 / 63</span></footer>
+</section>
+<section class="slide k-content" data-title="Microsoft Learn dan persiapan Hari 5" aria-label="Slide 62: Microsoft Learn dan persiapan Hari 5">
+<div class="sb"><h2 class="st">Microsoft Learn dan persiapan Hari 5</h2><div class="sc"><div class="two"><div><h3>Learning path: Program with Transact-SQL</h3><ul class=""><li>Get started with Transact-SQL programming</li><li>Create stored procedures and user-defined functions</li><li>Implement error handling with Transact-SQL</li><li>Implement transactions with Transact-SQL</li></ul><p class="note-line sm">Selesaikan <b>malam ini</b>: Hari 5 tidak punya slot pengerjaan. Keempatnya memberi trophy kedua.</p></div><div><h3>Hari 5</h3><ul class=""><li>Index dan execution plan</li><li>Concurrency: locking dan blocking</li><li>Keamanan dan akun aplikasi</li><li>Capstone project</li></ul><p class="note-line sm"><code>usp_CreateOrder</code> dipakai lagi untuk simulasi blocking dan uji hak akses.</p></div></div></div></div><footer class="sf"><span>Penutup</span><span>62 / 63</span></footer>
+</section>
+<section class="slide k-cover" data-title="Tanya jawab" aria-label="Slide 63: Tanya jawab">
+<div class="sb"><div class="sc"><div class="end"><p class="end-t">Terima kasih</p><p class="muted">Sampai jumpa di Hari 5</p></div></div></div>
+</section>
+</div></div>
+<div id="bar" aria-hidden="true"><i></i></div>
+<nav id="nav" aria-label="Navigasi slide">
+  <button type="button" id="bPrev" aria-label="Slide sebelumnya">‹</button>
+  <button type="button" id="bNext" aria-label="Slide berikutnya">›</button>
+  <button type="button" id="bHelp" aria-label="Pintasan keyboard">?</button>
+</nav>
+<div id="help" role="dialog" aria-label="Pintasan keyboard"><div>
+  <table>
+    <tr><td><kbd>→</kbd> <kbd>Spasi</kbd> <kbd>PgDn</kbd></td><td>Slide berikutnya</td></tr>
+    <tr><td><kbd>←</kbd> <kbd>PgUp</kbd></td><td>Slide sebelumnya</td></tr>
+    <tr><td><kbd>Home</kbd> <kbd>End</kbd></td><td>Slide pertama / terakhir</td></tr>
+    <tr><td><kbd>F</kbd></td><td>Layar penuh</td></tr>
+    <tr><td><kbd>T</kbd></td><td>Mulai atau jeda timer di slide aktivitas</td></tr>
+    <tr><td><kbd>G</kbd></td><td>Pergi ke nomor slide</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Tutup panel ini</td></tr>
+  </table>
+  <p style="margin:14px 0 0;color:#5B6475">Untuk PDF: gunakan Print browser, lalu Save as PDF.</p>
+</div></div>
+<script src="script.js" defer></script>
+</body>
+</html>
