@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hari 2 — Database Fundamental dengan SQL Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="stylesheet.css">
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<section class="slide k-cover" data-title="Database Fundamental dengan SQL Server" aria-label="Slide 1: Database Fundamental dengan SQL Server">
+<div class="sb"><div class="sc">
+<div class="cover">
+  <p class="cv-org">Metrodata Academy</p>
+  <h1 class="cv-title">Database Fundamental<br>dengan SQL Server</h1>
+  <table class="cv-meta"><tbody>
+    <tr><th>Program</th><td>Untuk Developer, 5 hari</td></tr>
+    <tr><th>Hari</th><td>2 dari 5</td></tr>
+    <tr><th>Topik</th><td>Database, data type, DML, dan query dasar</td></tr>
+  </tbody></table>
+</div></div></div>
+</section>
+<section class="slide k-content" data-title="Review Hari 1" aria-label="Slide 2: Review Hari 1">
+<div class="sb"><h2 class="st">Review Hari 1</h2><div class="sc"><ol class=""><li>Sebutkan satu partial dependency dari data faktur dan cara menghilangkannya.</li><li>Kenapa Total Faktur tidak disimpan di SalesDB, padahal tidak melanggar 3NF?</li><li>Apa beda logical model dan physical model?</li></ol><p class="note-line">Jawaban exit ticket kemarin kita bahas bersama sebelum mulai.</p></div></div><footer class="sf"><span>Pembukaan</span><span>2 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Yang kita bangun hari ini" aria-label="Slide 3: Yang kita bangun hari ini">
+<div class="sb"><h2 class="st">Yang kita bangun hari ini</h2><div class="sc"><p class="lead">Physical design hasil L1.3 kemarin menjadi database sungguhan hari ini.</p><table class="t "><thead><tr><th>Kemarin (L1.3)</th><th>Hari ini (L2.2 dan L2.3)</th></tr></thead><tbody><tr><td>Data type setiap kolom</td><td><code>CREATE TABLE</code> dengan data type tersebut</td></tr><tr><td>NULL / NOT NULL dan constraint</td><td>Constraint bernama + filtered unique index</td></tr><tr><td>Aturan bisnis Toko Sentosa</td><td>Data dari sheet 4_3NF masuk ke tabel</td></tr></tbody></table></div></div><footer class="sf"><span>Pembukaan</span><span>3 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Tujuan Hari 2" aria-label="Slide 4: Tujuan Hari 2">
+<div class="sb"><h2 class="st">Tujuan Hari 2</h2><div class="sc"><ol class="goals"><li>Membuat database dan schema, serta memahami peran data file dan log file</li><li>Menjelaskan perilaku setiap kelompok data type beserta jebakannya</li><li>Menjelaskan beda teks dengan dan tanpa prefix N, serta dampak collation</li><li>Menulis literal tanggal yang aman dan melakukan konversi data type</li><li>Mengimplementasikan physical design menjadi tabel dengan constraint bernama</li><li>Mengelola data dengan aman dan membaca pesan error constraint</li><li>Menulis query SELECT dasar: filter, NULL, pengurutan, dan paging</li></ol></div></div><footer class="sf"><span>Pembukaan</span><span>4 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Agenda hari ini" aria-label="Slide 5: Agenda hari ini">
+<div class="sb"><h2 class="st">Agenda hari ini</h2><div class="sc"><table class="t "><thead><tr><th>Bab</th><th>Topik</th><th>Latihan</th></tr></thead><tbody><tr><td>1</td><td>Membangun database</td><td>—</td></tr><tr><td>2</td><td>Data type (bab terpanjang)</td><td>L2.1</td></tr><tr><td>3</td><td>Constraint dan perubahan struktur</td><td>L2.2</td></tr><tr><td>4</td><td>Mengelola data (DML)</td><td>L2.3, L2.4, L2.6</td></tr><tr><td>5</td><td>Query dasar dengan SELECT</td><td>L2.5</td></tr></tbody></table><p class="note-line">Hari ini lebih banyak praktik langsung di SSMS daripada kemarin.</p></div></div><footer class="sf"><span>Pembukaan</span><span>5 / 82</span></footer>
+</section>
+<section class="slide k-divider" data-title="Membangun Database" aria-label="Slide 6: Membangun Database">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 1</p><table class="dv-t"><thead><tr><th colspan="2">Membangun Database</th></tr></thead><tbody><tr><td class="k">1.1</td><td>CREATE DATABASE, data file, dan log file</td></tr><tr><td class="k">1.2</td><td>Schema</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 1</span><span>6 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Data file dan log file" aria-label="Slide 7: Data file dan log file">
+<div class="sb"><h2 class="st">Data file dan log file</h2><div class="sc"><div class="two wide-l"><div><figure class="fig "><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+Cgo8IS0tIEdlbmVyYXRlZCBieSBncmFwaHZpeiB2ZXJzaW9uIDIuNDMuMCAoMCkKIC0tPgo8IS0tIFRpdGxlOiBHIFBhZ2VzOiAxIC0tPgo8c3ZnIHdpZHRoPSIzOThwdCIgaGVpZ2h0PSIxOTBwdCIKIHZpZXdCb3g9IjAuMDAgMC4wMCAzOTguMjAgMTkwLjIwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj4KPGcgaWQ9ImdyYXBoMCIgY2xhc3M9ImdyYXBoIiB0cmFuc2Zvcm09InNjYWxlKDEgMSkgcm90YXRlKDApIHRyYW5zbGF0ZSgyMS42IDE2OC42KSI+Cjx0aXRsZT5HPC90aXRsZT4KPHBvbHlnb24gZmlsbD0id2hpdGUiIHN0cm9rZT0idHJhbnNwYXJlbnQiIHBvaW50cz0iLTIxLjYsMjEuNiAtMjEuNiwtMTY4LjYgMzc2LjYsLTE2OC42IDM3Ni42LDIxLjYgLTIxLjYsMjEuNiIvPgo8IS0tIGRiIC0tPgo8ZyBpZD0ibm9kZTEiIGNsYXNzPSJub2RlIj4KPHRpdGxlPmRiPC90aXRsZT4KPHBhdGggZmlsbD0iIzFmMzg2NCIgc3Ryb2tlPSJibGFjayIgZD0iTTc1LC0xMDNDNzUsLTEwMyAxMiwtMTAzIDEyLC0xMDMgNiwtMTAzIDAsLTk3IDAsLTkxIDAsLTkxIDAsLTczIDAsLTczIDAsLTY3IDYsLTYxIDEyLC02MSAxMiwtNjEgNzUsLTYxIDc1LC02MSA4MSwtNjEgODcsLTY3IDg3LC03MyA4NywtNzMgODcsLTkxIDg3LC05MSA4NywtOTcgODEsLTEwMyA3NSwtMTAzIi8+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjQzLjUiIHk9Ii04NyIgZm9udC1mYW1pbHk9IkRlamFWdSBTYW5zLFZlcmRhbmEsR2VuZXZhLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUuMDAiIGZpbGw9IndoaXRlIj5EYXRhYmFzZTwvdGV4dD4KPHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iNDMuNSIgeT0iLTcwIiBmb250LWZhbWlseT0iRGVqYVZ1IFNhbnMsVmVyZGFuYSxHZW5ldmEsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNS4wMCIgZmlsbD0id2hpdGUiPlNhbGVzREI8L3RleHQ+CjwvZz4KPCEtLSBtZGYgLS0+CjxnIGlkPSJub2RlMiIgY2xhc3M9Im5vZGUiPgo8dGl0bGU+bWRmPC90aXRsZT4KPHBhdGggZmlsbD0iI2RkZWJmNyIgc3Ryb2tlPSJibGFjayIgZD0iTTMyNi41LC0xNDdDMzI2LjUsLTE0NyAxNzMuNSwtMTQ3IDE3My41LC0xNDcgMTY3LjUsLTE0NyAxNjEuNSwtMTQxIDE2MS41LC0xMzUgMTYxLjUsLTEzNSAxNjEuNSwtMTE3IDE2MS41LC0xMTcgMTYxLjUsLTExMSAxNjcuNSwtMTA1IDE3My41LC0xMDUgMTczLjUsLTEwNSAzMjYuNSwtMTA1IDMyNi41LC0xMDUgMzMyLjUsLTEwNSAzMzguNSwtMTExIDMzOC41LC0xMTcgMzM4LjUsLTExNyAzMzguNSwtMTM1IDMzOC41LC0xMzUgMzM4LjUsLTE0MSAzMzIuNSwtMTQ3IDMyNi41LC0xNDciLz4KPHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMjUwIiB5PSItMTMxIiBmb250LWZhbWlseT0iRGVqYVZ1IFNhbnMsVmVyZGFuYSxHZW5ldmEsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNS4wMCI+RGF0YSBmaWxlICgubWRmKTwvdGV4dD4KPHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMjUwIiB5PSItMTE0IiBmb250LWZhbWlseT0iRGVqYVZ1IFNhbnMsVmVyZGFuYSxHZW5ldmEsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNS4wMCI+aXNpIHRhYmVsLCBpbmRleCwgb2JqZWs8L3RleHQ+CjwvZz4KPCEtLSBkYiYjNDU7Jmd0O21kZiAtLT4KPGcgaWQ9ImVkZ2UxIiBjbGFzcz0iZWRnZSI+Cjx0aXRsZT5kYiYjNDU7Jmd0O21kZjwvdGl0bGU+CjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxhY2siIGQ9Ik04Ny4zNywtOTEuMjJDMTA2LjA0LC05NS4yNCAxMjguNzUsLTEwMC4xMyAxNTEuMTgsLTEwNC45NSIvPgo8cG9seWdvbiBmaWxsPSJibGFjayIgc3Ryb2tlPSJibGFjayIgcG9pbnRzPSIxNTAuNTksLTEwOC40MSAxNjEuMSwtMTA3LjA5IDE1Mi4wNiwtMTAxLjU2IDE1MC41OSwtMTA4LjQxIi8+CjwvZz4KPCEtLSBsZGYgLS0+CjxnIGlkPSJub2RlMyIgY2xhc3M9Im5vZGUiPgo8dGl0bGU+bGRmPC90aXRsZT4KPHBhdGggZmlsbD0iI2ZmZjJjYyIgc3Ryb2tlPSJibGFjayIgZD0iTTM0MywtNzZDMzQzLC03NiAxNTcsLTc2IDE1NywtNzYgMTUxLC03NiAxNDUsLTcwIDE0NSwtNjQgMTQ1LC02NCAxNDUsLTEyIDE0NSwtMTIgMTQ1LC02IDE1MSwwIDE1NywwIDE1NywwIDM0MywwIDM0MywwIDM0OSwwIDM1NSwtNiAzNTUsLTEyIDM1NSwtMTIgMzU1LC02NCAzNTUsLTY0IDM1NSwtNzAgMzQ5LC03NiAzNDMsLTc2Ii8+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjI1MCIgeT0iLTYwIiBmb250LWZhbWlseT0iRGVqYVZ1IFNhbnMsVmVyZGFuYSxHZW5ldmEsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNS4wMCI+TG9nIGZpbGUgKC5sZGYpPC90ZXh0Pgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSIyNTAiIHk9Ii00MyIgZm9udC1mYW1pbHk9IkRlamFWdSBTYW5zLFZlcmRhbmEsR2VuZXZhLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUuMDAiPmNhdGF0YW4gc2V0aWFwIHBlcnViYWhhbjwvdGV4dD4KPHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMjUwIiB5PSItMjYiIGZvbnQtZmFtaWx5PSJEZWphVnUgU2FucyxWZXJkYW5hLEdlbmV2YSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE1LjAwIj4oZGlwYWthaSB1bnR1ayByb2xsYmFjazwvdGV4dD4KPHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMjUwIiB5PSItOSIgZm9udC1mYW1pbHk9IkRlamFWdSBTYW5zLFZlcmRhbmEsR2VuZXZhLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUuMDAiPmRhbiByZWNvdmVyeSk8L3RleHQ+CjwvZz4KPCEtLSBkYiYjNDU7Jmd0O2xkZiAtLT4KPGcgaWQ9ImVkZ2UyIiBjbGFzcz0iZWRnZSI+Cjx0aXRsZT5kYiYjNDU7Jmd0O2xkZjwvdGl0bGU+CjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxhY2siIGQ9Ik04Ny4zNywtNzIuNzhDMTAxLjQ3LC02OS43NCAxMTcuODcsLTY2LjIxIDEzNC43MiwtNjIuNTkiLz4KPHBvbHlnb24gZmlsbD0iYmxhY2siIHN0cm9rZT0iYmxhY2siIHBvaW50cz0iMTM1LjYzLC02NS45NyAxNDQuNjcsLTYwLjQ1IDEzNC4xNiwtNTkuMTMgMTM1LjYzLC02NS45NyIvPgo8L2c+CjwvZz4KPC9zdmc+Cg==" alt="Data file dan log file"></figure></div><div><table class="t "><thead><tr><th>File</th><th>Isi</th></tr></thead><tbody><tr><td><code>.mdf</code></td><td>Data tabel, index, definisi objek</td></tr><tr><td><code>.ndf</code></td><td>Opsional, untuk membagi data ke beberapa disk</td></tr><tr><td><code>.ldf</code></td><td>Catatan setiap perubahan; dipakai untuk rollback dan recovery</td></tr></tbody></table></div></div></div></div><footer class="sf"><span>Bab 1</span><span>7 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="CREATE DATABASE" aria-label="Slide 8: CREATE DATABASE">
+<div class="sb"><h2 class="st">CREATE DATABASE</h2><div class="sc"><pre class="code"><code>IF DB_ID(N'HRDemo') IS NULL
+    CREATE DATABASE HRDemo;
+GO
+USE HRDemo;
+
+SELECT name, physical_name, type_desc,
+       size * 8 / 1024 AS SizeMB, growth
+FROM   sys.database_files;</code></pre><p class="note-line">Bentuk lengkap dengan <code>ON PRIMARY</code> dan <code>LOG ON</code> dipakai saat lokasi dan ukuran file perlu ditentukan sendiri.</p></div></div><footer class="sf"><span>Bab 1</span><span>8 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Autogrowth" aria-label="Slide 9: Autogrowth">
+<div class="sb"><h2 class="st">Autogrowth</h2><div class="sc"><p class="lead">Saat file penuh, SQL Server memperbesarnya otomatis. Setiap pembesaran membuat query menunggu.</p><ul class=""><li>Pertumbuhan terlalu kecil dan terlalu sering memperlambat aplikasi</li><li>Pertumbuhan dalam <b>persen</b> berbahaya: file 100 GB tumbuh 10% menambah 10 GB sekaligus</li><li>Di produksi: ukuran awal cukup besar, pertumbuhan dalam MB yang tetap</li></ul><div class="box warn"><p class="box-l">Perhatian</p><p>Log file membengkak sampai memenuhi disk? Penyebab paling umum: recovery model FULL tanpa backup log rutin (Hari 5).</p></div></div></div><footer class="sf"><span>Bab 1</span><span>9 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Schema" aria-label="Slide 10: Schema">
+<div class="sb"><h2 class="st">Schema</h2><div class="sc"><div class="two"><div><ul class=""><li><code>dbo</code> adalah schema default</li><li>Buat schema sendiri untuk mengelompokkan objek per domain (<code>Sales</code>, <code>HR</code>) atau mengatur permission per kelompok</li><li>SalesDB cukup memakai <code>dbo</code></li></ul></div><div><pre class="code"><code>CREATE SCHEMA Payroll;
+GO
+CREATE TABLE Payroll.SalaryHistory (...);</code></pre><div class="box tip"><p class="box-l">Tips dari lapangan</p><p>Selalu tulis dua bagian: <code>dbo.Employee</code>, bukan <code>Employee</code>.</p></div></div></div></div></div><footer class="sf"><span>Bab 1</span><span>10 / 82</span></footer>
+</section>
+<section class="slide k-divider" data-title="Data Type" aria-label="Slide 11: Data Type">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 2</p><table class="dv-t"><thead><tr><th colspan="2">Data Type</th></tr></thead><tbody><tr><td class="k">2.1</td><td>Peta data type</td></tr><tr><td class="k">2.2–2.3</td><td>Numeric: exact dan approximate</td></tr><tr><td class="k">2.4–2.5</td><td>Teks, Unicode, dan prefix N</td></tr><tr><td class="k">2.6</td><td>Collation</td></tr><tr><td class="k">2.7</td><td>Date dan time</td></tr><tr><td class="k">2.8–2.9</td><td>Binary dan data type khusus</td></tr><tr><td class="k">2.10–2.11</td><td>Konversi dan rangkuman</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 2</span><span>11 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Peta data type" aria-label="Slide 12: Peta data type">
+<div class="sb"><h2 class="st">Peta data type</h2><div class="sc"><table class="t "><thead><tr><th>Kelompok</th><th>Data type</th></tr></thead><tbody><tr><td>Exact numeric</td><td><code>TINYINT</code> <code>SMALLINT</code> <code>INT</code> <code>BIGINT</code> <code>DECIMAL</code> <code>MONEY</code> <code>BIT</code></td></tr><tr><td>Approximate numeric</td><td><code>FLOAT</code> <code>REAL</code></td></tr><tr><td>Teks dan Unicode</td><td><code>CHAR</code> <code>VARCHAR</code> <code>NCHAR</code> <code>NVARCHAR</code></td></tr><tr><td>Date dan time</td><td><code>DATE</code> <code>TIME</code> <code>DATETIME2</code> <code>DATETIMEOFFSET</code> <code>DATETIME</code></td></tr><tr><td>Binary</td><td><code>BINARY</code> <code>VARBINARY</code></td></tr><tr><td>Lainnya</td><td><code>UNIQUEIDENTIFIER</code> <code>ROWVERSION</code> <code>XML</code> spatial <code>SQL_VARIANT</code></td></tr></tbody></table><p class="ask">Berapa rentang yang dibutuhkan? Berapa ruang yang dipakai? Apakah nilainya harus tepat?</p></div></div><footer class="sf"><span>Bab 2</span><span>12 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Bilangan bulat" aria-label="Slide 13: Bilangan bulat">
+<div class="sb"><h2 class="st">Bilangan bulat</h2><div class="sc"><table class="t "><thead><tr><th>Data type</th><th>Rentang</th><th>Ukuran</th><th>Contoh pemakaian</th></tr></thead><tbody><tr><td><code>TINYINT</code></td><td>0 – 255</td><td>1 byte</td><td>Nomor lantai, kode status kecil</td></tr><tr><td><code>SMALLINT</code></td><td>-32.768 – 32.767</td><td>2 byte</td><td>Kapasitas ruang, tahun</td></tr><tr><td><code>INT</code></td><td>± 2,1 miliar</td><td>4 byte</td><td>ID dan jumlah barang: pilihan default</td></tr><tr><td><code>BIGINT</code></td><td>± 9,2 × 10¹⁸</td><td>8 byte</td><td>ID tabel bervolume sangat tinggi</td></tr></tbody></table><pre class="code"><code>DECLARE @lantai TINYINT = 256;   -- Msg 220: Arithmetic overflow</code></pre></div></div><footer class="sf"><span>Bab 2</span><span>13 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="DECIMAL(p,s)" aria-label="Slide 14: DECIMAL(p,s)">
+<div class="sb"><h2 class="st">DECIMAL(p,s)</h2><div class="sc"><div class="two"><div><p class="lead"><b>p</b> = jumlah digit total (1–38), <b>s</b> = digit di belakang koma.</p><table class="t sm"><thead><tr><th>Precision</th><th>Ukuran</th></tr></thead><tbody><tr><td>1–9</td><td>5 byte</td></tr><tr><td>10–19</td><td>9 byte</td></tr><tr><td>20–28</td><td>13 byte</td></tr><tr><td>29–38</td><td>17 byte</td></tr></tbody></table></div><div><pre class="code"><code>DECLARE @harga DECIMAL(12,2) = 1850000.456;
+SELECT @harga;   -- 1850000.46</code></pre><p>Digit desimal berlebih <b>dibulatkan</b>, bukan ditolak.</p></div></div></div></div><footer class="sf"><span>Bab 2</span><span>14 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="MONEY vs DECIMAL" aria-label="Slide 15: MONEY vs DECIMAL">
+<div class="sb"><h2 class="st">MONEY vs DECIMAL</h2><div class="sc"><pre class="code"><code>DECLARE @m1 MONEY = 1, @m2 MONEY = 3;
+DECLARE @d1 DECIMAL(19,4) = 1, @d2 DECIMAL(19,4) = 3;
+
+SELECT @m1 / @m2 AS HasilMoney,     -- 0.3333
+       @d1 / @d2 AS HasilDecimal;   -- 0.3333333333...</code></pre><p class="note-line"><code>MONEY</code> selalu 4 digit desimal, dan hasil perhitungan ikut dipotong. Untuk uang, pakai <code>DECIMAL</code> dengan precision dan scale yang jelas.</p></div></div><footer class="sf"><span>Bab 2</span><span>15 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Jebakan: pembagian bilangan bulat" aria-label="Slide 16: Jebakan: pembagian bilangan bulat">
+<div class="sb"><h2 class="st">Jebakan: pembagian bilangan bulat</h2><div class="sc"><pre class="code"><code>SELECT 5 / 2   AS A,   -- 2
+       5 / 2.0 AS B;   -- 2.500000</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p><code>JumlahTerjual / TotalStok * 100</code> selalu 0 jika kedua kolom <code>INT</code> dan pembilang lebih kecil dari penyebut. Konversi salah satu ke <code>DECIMAL</code> lebih dulu.</p></div></div></div><footer class="sf"><span>Bab 2</span><span>16 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="FLOAT dan REAL" aria-label="Slide 17: FLOAT dan REAL">
+<div class="sb"><h2 class="st">FLOAT dan REAL</h2><div class="sc"><div class="two"><div><pre class="code"><code>SELECT IIF(CAST(0.1 AS FLOAT)
+         + CAST(0.2 AS FLOAT)
+         = CAST(0.3 AS FLOAT), 'sama', 'beda');
+-- beda</code></pre></div><div><ul class=""><li><b>Cocok</b>: pengukuran ilmiah, sensor, koordinat</li><li><b>Tidak cocok</b>: uang, jumlah barang, nilai yang dibandingkan dengan <code>=</code></li><li><code>REAL</code> 4 byte (~7 digit), <code>FLOAT</code> 8 byte (~15 digit)</li></ul></div></div></div></div><footer class="sf"><span>Bab 2</span><span>17 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Empat data type teks" aria-label="Slide 18: Empat data type teks">
+<div class="sb"><h2 class="st">Empat data type teks</h2><div class="sc"><table class="t "><thead><tr><th>Data type</th><th>Panjang</th><th>Unicode</th><th>Arti n</th><th>Maksimal n</th></tr></thead><tbody><tr><td><code>CHAR(n)</code></td><td>Tetap</td><td>Tidak</td><td>Byte</td><td>8000</td></tr><tr><td><code>VARCHAR(n)</code></td><td>Berubah</td><td>Tidak*</td><td>Byte</td><td>8000 atau <code>MAX</code></td></tr><tr><td><code>NCHAR(n)</code></td><td>Tetap</td><td>Ya</td><td>Pasangan byte</td><td>4000</td></tr><tr><td><code>NVARCHAR(n)</code></td><td>Berubah</td><td>Ya</td><td>Pasangan byte</td><td>4000 atau <code>MAX</code></td></tr></tbody></table><p class="note-line">* <code>VARCHAR</code> bisa menyimpan Unicode dengan collation UTF-8 (SQL Server 2019 ke atas).</p></div></div><footer class="sf"><span>Bab 2</span><span>18 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="CHAR vs VARCHAR" aria-label="Slide 19: CHAR vs VARCHAR">
+<div class="sb"><h2 class="st">CHAR vs VARCHAR</h2><div class="sc"><pre class="code"><code>DECLARE @c CHAR(10) = 'abc', @v VARCHAR(10) = 'abc';
+SELECT DATALENGTH(@c) AS ByteChar,     -- 10
+       DATALENGTH(@v) AS ByteVarchar,  -- 3
+       LEN(@c)        AS LenChar;      -- 3</code></pre><ul class="sm"><li><code>LEN</code> menghitung karakter tanpa spasi di belakang, <code>DATALENGTH</code> menghitung byte</li><li><code>CHAR</code> untuk nilai yang selalu sama panjang: NIK, kode negara, kode mata uang</li></ul></div></div><footer class="sf"><span>Bab 2</span><span>19 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Dua jebakan panjang teks" aria-label="Slide 20: Dua jebakan panjang teks">
+<div class="sb"><h2 class="st">Dua jebakan panjang teks</h2><div class="sc"><div class="two"><div><h3>Panjang default</h3><pre class="code"><code>DECLARE @nama VARCHAR = 'Budi';
+SELECT @nama;   -- B
+
+SELECT CAST('teks panjang...' AS VARCHAR);
+-- terpotong di 30 karakter</code></pre><p class="sm">Selalu tulis panjangnya.</p></div><div><h3>Arti n pada NVARCHAR</h3><ul class=""><li><i>n</i> = jumlah pasangan byte, bukan karakter</li><li>Sebagian besar karakter = 1 pasangan byte</li><li>Emoji umumnya 2 pasangan byte, jadi <code>NVARCHAR(10)</code> hanya muat 5 emoji</li></ul></div></div></div></div><footer class="sf"><span>Bab 2</span><span>20 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Prefix N: &#x27;...&#x27; vs N&#x27;...&#x27;" aria-label="Slide 21: Prefix N: &#x27;...&#x27; vs N&#x27;...&#x27;">
+<div class="sb"><h2 class="st">Prefix N: '...' vs N'...'</h2><div class="sc"><div class="box def"><p class="box-l">Definisi</p><p>Tanpa N (<code>'Budi'</code>) dibaca sebagai <code>VARCHAR</code>, mengikuti code page collation.</p><p>Dengan N (<code>N'Budi'</code>) dibaca sebagai <code>NVARCHAR</code> (Unicode). N dari <i>National</i>.</p></div><p class="lead">SQL Server mengonversi literal ke tipenya <b>lebih dulu</b>, baru memasukkannya ke kolom. Karakter yang hilang, hilang sebelum sampai ke kolom.</p></div></div><footer class="sf"><span>Bab 2</span><span>21 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Prefix N: demo" aria-label="Slide 22: Prefix N: demo">
+<div class="sb"><h2 class="st">Prefix N: demo</h2><div class="sc"><pre class="code"><code>DECLARE @a NVARCHAR(20) = '日本',
+        @b NVARCHAR(20) = N'日本';
+SELECT @a AS TanpaN, @b AS DenganN;
+-- TanpaN: ??     DenganN: 日本</code></pre><p class="note-line">Contoh nyata: nama beraksara Arab atau Jawa, nama produk impor, dan emoji pada ulasan pelanggan.</p></div></div><footer class="sf"><span>Bab 2</span><span>22 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Prefix N: performa dan aturan" aria-label="Slide 23: Prefix N: performa dan aturan">
+<div class="sb"><h2 class="st">Prefix N: performa dan aturan</h2><div class="sc"><table class="t "><thead><tr><th>Kolom</th><th>Pembanding</th><th>Yang terjadi</th></tr></thead><tbody><tr><td><code>NVARCHAR</code></td><td><code>'Budi'</code></td><td>Literal dikonversi; index tetap terpakai, tetapi karakter non-ASCII bisa rusak</td></tr><tr><td><code>VARCHAR</code></td><td><code>N'Budi'</code></td><td><b>Kolom</b> yang dikonversi; index bisa tidak terpakai optimal</td></tr></tbody></table><ul class="sm"><li>Kolom <code>NVARCHAR</code> → literal dengan N</li><li>Kolom <code>VARCHAR</code> → literal tanpa N</li><li>Parameter aplikasi disamakan dengan data type kolom</li><li><code>sp_executesql</code> wajib memakai N</li></ul></div></div><footer class="sf"><span>Bab 2</span><span>23 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Collation" aria-label="Slide 24: Collation">
+<div class="sb"><h2 class="st">Collation</h2><div class="sc"><div class="two"><div><p class="lead"><code>SQL_Latin1_General_CP1_CI_AS</code></p><table class="t sm"><thead><tr><th>Bagian</th><th>Arti</th></tr></thead><tbody><tr><td><code>CI</code> / <code>CS</code></td><td>Case-insensitive / sensitive</td></tr><tr><td><code>AI</code> / <code>AS</code></td><td>Accent-insensitive / sensitive</td></tr><tr><td><code>_UTF8</code></td><td><code>VARCHAR</code> menyimpan Unicode</td></tr></tbody></table></div><div><ul class=""><li>Berlaku di tingkat instance, database, kolom, dan ekspresi (<code>COLLATE</code>)</li><li>Default umumnya <b>case-insensitive</b>: <code>'budi' = 'BUDI'</code> bernilai TRUE</li></ul></div></div></div></div><footer class="sf"><span>Bab 2</span><span>24 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Dampak collation" aria-label="Slide 25: Dampak collation">
+<div class="sb"><h2 class="st">Dampak collation</h2><div class="sc"><ul class=""><li><b>Pencarian</b>: <code>WHERE Name = 'budi'</code> juga menemukan "Budi" dan "BUDI"</li><li><b>UNIQUE</b>: "Budi@mail.com" dan "budi@mail.com" dianggap sama, jadi ditolak sebagai duplikat</li><li><b>Pengurutan</b>: urutan <code>ORDER BY</code> pada teks mengikuti aturan collation</li><li><b>Konflik collation</b>: membandingkan dua kolom dengan collation berbeda memunculkan error <i>Cannot resolve the collation conflict</i></li></ul><pre class="code"><code>SELECT FirstName FROM SalesLT.Customer
+WHERE  FirstName COLLATE Latin1_General_CS_AS = 'orlando';   -- tidak menemukan 'Orlando'</code></pre></div></div><footer class="sf"><span>Bab 2</span><span>25 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Date dan time" aria-label="Slide 26: Date dan time">
+<div class="sb"><h2 class="st">Date dan time</h2><div class="sc"><table class="t "><thead><tr><th>Data type</th><th>Rentang</th><th>Ketelitian</th><th>Ukuran</th></tr></thead><tbody><tr><td><code>DATE</code></td><td>0001 – 9999</td><td>1 hari</td><td>3 byte</td></tr><tr><td><code>TIME(n)</code></td><td>00:00 – 23:59:59.9999999</td><td>100 ns</td><td>3–5 byte</td></tr><tr><td><b><code>DATETIME2(n)</code></b></td><td>0001 – 9999</td><td>100 ns</td><td>6–8 byte</td></tr><tr><td><code>DATETIMEOFFSET(n)</code></td><td>Sama + offset zona waktu</td><td>100 ns</td><td>8–10 byte</td></tr><tr><td><code>DATETIME</code> (lama)</td><td>1753 – 9999</td><td>dibulatkan ke .000/.003/.007</td><td>8 byte</td></tr><tr><td><code>SMALLDATETIME</code> (lama)</td><td>1900 – 2079</td><td>1 menit</td><td>4 byte</td></tr></tbody></table><p class="note-line"><code>DATETIME2</code> adalah pilihan utama untuk desain baru.</p></div></div><footer class="sf"><span>Bab 2</span><span>26 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Jebakan: pembulatan DATETIME" aria-label="Slide 27: Jebakan: pembulatan DATETIME">
+<div class="sb"><h2 class="st">Jebakan: pembulatan DATETIME</h2><div class="sc"><pre class="code"><code>SELECT CAST('2026-09-01T23:59:59.999' AS DATETIME)  AS Dt,
+       CAST('2026-09-01T23:59:59.999' AS DATETIME2) AS Dt2;
+
+-- Dt : 2026-09-02 00:00:00.000   (pindah hari!)
+-- Dt2: 2026-09-01 23:59:59.9990000</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p>Filter laporan harian <code>&lt;= '2026-09-01 23:59:59.999'</code> pada kolom <code>DATETIME</code> ikut mengambil data tanggal 2 September.</p></div></div></div><footer class="sf"><span>Bab 2</span><span>27 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Format literal tanggal" aria-label="Slide 28: Format literal tanggal">
+<div class="sb"><h2 class="st">Format literal tanggal</h2><div class="sc"><pre class="code"><code>SET LANGUAGE us_english; SELECT CAST('01/09/2026' AS DATETIME);   -- 9 Januari
+SET LANGUAGE british;    SELECT CAST('01/09/2026' AS DATETIME);   -- 1 September
+SELECT CAST('20260901' AS DATETIME);                              -- selalu 1 September</code></pre><table class="t sm"><thead><tr><th>Format</th><th>Aman?</th></tr></thead><tbody><tr><td><code>'YYYYMMDD'</code></td><td>Aman untuk semua data type tanggal</td></tr><tr><td><code>'YYYY-MM-DDThh:mm:ss'</code></td><td>Aman (ISO 8601, perhatikan huruf T)</td></tr><tr><td><code>'YYYY-MM-DD'</code></td><td>Aman untuk <code>DATE</code> dan <code>DATETIME2</code>, tidak untuk <code>DATETIME</code></td></tr><tr><td><code>'DD-MM-YYYY'</code></td><td><b>Tidak aman</b></td></tr></tbody></table></div></div><footer class="sf"><span>Bab 2</span><span>28 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Fungsi waktu dan zona waktu" aria-label="Slide 29: Fungsi waktu dan zona waktu">
+<div class="sb"><h2 class="st">Fungsi waktu dan zona waktu</h2><div class="sc"><div class="two"><div><table class="t sm"><thead><tr><th>Fungsi</th><th>Menghasilkan</th></tr></thead><tbody><tr><td><code>SYSDATETIME()</code></td><td>Waktu lokal (<code>DATETIME2</code>)</td></tr><tr><td><code>SYSUTCDATETIME()</code></td><td>Waktu UTC</td></tr><tr><td><code>SYSDATETIMEOFFSET()</code></td><td>Waktu lokal + offset</td></tr><tr><td><code>GETDATE()</code></td><td>Waktu lokal (<code>DATETIME</code>, lama)</td></tr></tbody></table></div><div><ul class=""><li>Indonesia punya tiga zona waktu: WIB, WITA, WIT</li><li>Lintas zona waktu atau server cloud: simpan <b>UTC</b> atau pakai <code>DATETIMEOFFSET</code></li><li>Satu lokasi seperti Toko Sentosa: waktu lokal boleh, asalkan disengaja dan konsisten</li></ul></div></div></div></div><footer class="sf"><span>Bab 2</span><span>29 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Binary dan data type khusus" aria-label="Slide 30: Binary dan data type khusus">
+<div class="sb"><h2 class="st">Binary dan data type khusus</h2><div class="sc"><div class="two"><div><h3>Data besar</h3><ul class=""><li><code>VARBINARY(MAX)</code>, <code>NVARCHAR(MAX)</code> hingga 2 GB</li><li>Menyimpan file: isi di database vs path saja; umumnya path lebih dipilih</li><li><code>TEXT</code>, <code>NTEXT</code>, <code>IMAGE</code> sudah deprecated</li></ul></div><div><h3>Khusus</h3><ul class=""><li><code>UNIQUEIDENTIFIER</code>: GUID 16 byte; <code>NEWID()</code> acak menyebabkan fragmentation jika dijadikan clustered PK</li><li><code>ROWVERSION</code>: berubah otomatis setiap baris diubah, dasar optimistic concurrency</li><li><code>SQL_VARIANT</code>: hindari</li></ul></div></div></div></div><footer class="sf"><span>Bab 2</span><span>30 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Konversi data type" aria-label="Slide 31: Konversi data type">
+<div class="sb"><h2 class="st">Konversi data type</h2><div class="sc"><pre class="code"><code>SELECT CAST('123' AS INT)              AS A,   -- 123
+       TRY_CAST('12a' AS INT)          AS B,   -- NULL, bukan error
+       CONVERT(VARCHAR(10), GETDATE(), 103) AS C;   -- dd/mm/yyyy</code></pre><p class="lead">Precedence (sebagian, dari tertinggi): tanggal → <code>FLOAT</code> → <code>DECIMAL</code> → <code>INT</code> → <code>BIT</code> → <code>NVARCHAR</code> → <code>VARCHAR</code></p><div class="box warn"><p class="box-l">Perhatian</p><p><code>WHERE KodePos = 12345</code> pada kolom <code>VARCHAR</code>: kolom dikonversi ke <code>INT</code> di setiap baris. Query bisa gagal (Msg 245) dan index tidak terpakai optimal. Bandingkan dengan literal teks.</p></div></div></div><footer class="sf"><span>Bab 2</span><span>31 / 82</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L2.1: demo jebakan data type" aria-label="Slide 32: Latihan L2.1: demo jebakan data type">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L2.1: demo jebakan data type</h2><div class="sc"><p class="lead">Jalankan lima demo berikut, catat hasilnya, dan jelaskan penyebabnya dalam satu kalimat.</p><ol class=""><li><code>0.1 + 0.2 = 0.3</code> dengan <code>FLOAT</code> dan <code>DECIMAL</code> (2.3)</li><li><code>DATALENGTH</code> dan <code>LEN</code> untuk <code>CHAR(10)</code> dan <code>VARCHAR(10)</code> (2.4)</li><li><code>'2026-09-01T23:59:59.999'</code> sebagai <code>DATETIME</code> dan <code>DATETIME2</code> (2.7)</li><li><code>'01/09/2026'</code> dengan dua setting bahasa (2.7)</li><li><code>'日本'</code> ke <code>NVARCHAR</code> dengan dan tanpa N (2.5)</li></ol><div class="timer" data-min="15"><span class="tm-d">15:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 2</span><span>32 / 82</span></footer>
+</section>
+<section class="slide k-answer" data-title="Pembahasan L2.1" aria-label="Slide 33: Pembahasan L2.1">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Pembahasan L2.1</h2><div class="sc"><table class="t sm"><thead><tr><th>Demo</th><th>Hasil</th><th>Penyebab</th></tr></thead><tbody><tr><td>1</td><td>FLOAT: beda. DECIMAL: sama</td><td>0,1 dan 0,2 tidak tepat dalam floating-point biner</td></tr><tr><td>2</td><td>10 byte, 3 byte, LEN 3</td><td>CHAR ditambah spasi; LEN mengabaikan spasi di belakang</td></tr><tr><td>3</td><td>DATETIME pindah ke 2 September</td><td>Dibulatkan ke kelipatan .000/.003/.007 detik</td></tr><tr><td>4</td><td>9 Januari vs 1 September</td><td>Format dd-mm-yyyy dibaca menurut setting bahasa</td></tr><tr><td>5</td><td>?? vs 日本</td><td>Literal tanpa N dikonversi ke VARCHAR sebelum masuk variabel</td></tr></tbody></table></div></div><footer class="sf"><span>Bab 2</span><span>33 / 82</span></footer>
+</section>
+<section class="slide k-quiz" data-title="Cek pemahaman Bab 2" aria-label="Slide 34: Cek pemahaman Bab 2">
+<div class="sb"><p class="tag quiz">Cek pemahaman</p><h2 class="st">Cek pemahaman Bab 2</h2><div class="sc"><ol class=""><li>Apa hasil <code>SELECT 7 / 2;</code> dan kenapa?</li><li>Kolom <code>ProductName NVARCHAR(100)</code> diisi <code>'寿司'</code> tanpa N. Apa yang tersimpan?</li><li>Tuliskan literal aman untuk 17 Agustus 2026.</li></ol></div></div><footer class="sf"><span>Bab 2</span><span>34 / 82</span></footer>
+</section>
+<section class="slide k-answer" data-title="Jawaban cek pemahaman Bab 2" aria-label="Slide 35: Jawaban cek pemahaman Bab 2">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Jawaban cek pemahaman Bab 2</h2><div class="sc"><ol class=""><li>3. Kedua operand <code>INT</code>, sehingga hasilnya <code>INT</code> dan desimalnya dibuang.</li><li>Tanda tanya. Literal dikonversi ke <code>VARCHAR</code> lebih dulu, sehingga karakternya hilang sebelum masuk kolom.</li><li><code>'20260817'</code>, atau <code>'2026-08-17'</code> untuk <code>DATE</code> dan <code>DATETIME2</code>.</li></ol></div></div><footer class="sf"><span>Bab 2</span><span>35 / 82</span></footer>
+</section>
+<section class="slide k-divider" data-title="Constraint dan Perubahan Struktur" aria-label="Slide 36: Constraint dan Perubahan Struktur">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 3</p><table class="dv-t"><thead><tr><th colspan="2">Constraint dan Perubahan Struktur</th></tr></thead><tbody><tr><td class="k">3.1</td><td>Menulis dan menamai constraint</td></tr><tr><td class="k">3.2</td><td>PRIMARY KEY, IDENTITY, SEQUENCE</td></tr><tr><td class="k">3.3</td><td>FOREIGN KEY dan referential action</td></tr><tr><td class="k">3.4</td><td>UNIQUE dan filtered unique index</td></tr><tr><td class="k">3.5</td><td>CHECK dan DEFAULT</td></tr><tr><td class="k">3.6–3.7</td><td>ALTER TABLE dan script idempotent</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 3</span><span>36 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Menulis constraint" aria-label="Slide 37: Menulis constraint">
+<div class="sb"><h2 class="st">Menulis constraint</h2><div class="sc"><pre class="code"><code>CREATE TABLE dbo.Employee (
+    EmployeeID   INT IDENTITY(1,1) CONSTRAINT PK_Employee PRIMARY KEY,
+    DepartmentID INT           NOT NULL,
+    FullName     NVARCHAR(100) NOT NULL,
+    Email        VARCHAR(100)  NULL CONSTRAINT UQ_Employee_Email UNIQUE,
+    Salary       DECIMAL(12,2) NOT NULL CONSTRAINT CK_Employee_Salary CHECK (Salary > 0),
+    HireDate     DATE NOT NULL CONSTRAINT DF_Employee_HireDate DEFAULT CAST(SYSDATETIME() AS DATE),
+    CONSTRAINT FK_Employee_Department
+        FOREIGN KEY (DepartmentID) REFERENCES dbo.Department (DepartmentID)
+);</code></pre><p class="note-line">Column-level untuk satu kolom; table-level wajib untuk constraint yang melibatkan beberapa kolom.</p></div></div><footer class="sf"><span>Bab 3</span><span>37 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Kenapa constraint diberi nama" aria-label="Slide 38: Kenapa constraint diberi nama">
+<div class="sb"><h2 class="st">Kenapa constraint diberi nama</h2><div class="sc"><div class="two"><div><h3>Tanpa nama</h3><p><code>PK__Employee__7AD04FF1A3B2C4D5</code></p><ul class=""><li>Tidak menjelaskan apa pun di pesan error</li><li>Berbeda di setiap server, sehingga script <code>DROP CONSTRAINT</code> tidak portabel</li></ul></div><div><table class="t sm"><thead><tr><th>Awalan</th><th>Pola nama</th></tr></thead><tbody><tr><td><code>PK_</code></td><td><code>PK_NamaTabel</code></td></tr><tr><td><code>FK_</code></td><td><code>FK_TabelAnak_TabelInduk</code></td></tr><tr><td><code>UQ_</code></td><td><code>UQ_Tabel_Kolom</code></td></tr><tr><td><code>CK_</code></td><td><code>CK_Tabel_Kolom</code></td></tr><tr><td><code>DF_</code></td><td><code>DF_Tabel_Kolom</code></td></tr></tbody></table></div></div></div></div><footer class="sf"><span>Bab 3</span><span>38 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="PRIMARY KEY dan IDENTITY" aria-label="Slide 39: PRIMARY KEY dan IDENTITY">
+<div class="sb"><h2 class="st">PRIMARY KEY dan IDENTITY</h2><div class="sc"><ul class=""><li>Primary key otomatis membuat index unik, secara default <i>clustered</i></li><li>PK gabungan ditulis table-level: <code>CONSTRAINT PK_OrderDetail PRIMARY KEY (OrderID, ProductID)</code></li><li><code>IDENTITY(1,1)</code>: mulai 1, bertambah 1</li></ul><div class="box warn"><p class="box-l">Perhatian</p><p>Nilai IDENTITY <b>bisa melompat</b>: INSERT yang gagal atau di-rollback tetap memakai nomornya, dan restart server bisa melompatkan nilai. Tidak cocok untuk nomor faktur pajak yang wajib berurutan tanpa celah.</p></div></div></div><footer class="sf"><span>Bab 3</span><span>39 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="IDENTITY vs SEQUENCE" aria-label="Slide 40: IDENTITY vs SEQUENCE">
+<div class="sb"><h2 class="st">IDENTITY vs SEQUENCE</h2><div class="sc"><table class="t "><thead><tr><th></th><th>IDENTITY</th><th>SEQUENCE</th></tr></thead><tbody><tr><td>Terikat ke</td><td>Satu kolom di satu tabel</td><td>Objek sendiri, bisa dipakai beberapa tabel</td></tr><tr><td>Nomor tersedia</td><td>Setelah INSERT</td><td>Sebelum INSERT</td></tr><tr><td>Cocok untuk</td><td>Surrogate key biasa</td><td>Nomor bersama, atau nomor yang perlu diketahui lebih dulu</td></tr></tbody></table><pre class="code"><code>CREATE SEQUENCE dbo.seq_DocumentNo AS INT START WITH 1 INCREMENT BY 1;
+SELECT NEXT VALUE FOR dbo.seq_DocumentNo;</code></pre><p class="note-line sm">Keduanya bisa melompat; tidak ada jaminan tanpa celah.</p></div></div><footer class="sf"><span>Bab 3</span><span>40 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="FOREIGN KEY" aria-label="Slide 41: FOREIGN KEY">
+<div class="sb"><h2 class="st">FOREIGN KEY</h2><div class="sc"><pre class="code"><code>CONSTRAINT FK_Employee_Department
+    FOREIGN KEY (DepartmentID) REFERENCES dbo.Department (DepartmentID)
+    ON DELETE NO ACTION     -- default
+    ON UPDATE NO ACTION</code></pre><ul class="sm"><li>Kolom yang dirujuk harus PK atau UNIQUE; data type harus sama</li><li><code>SET NULL</code> hanya bisa jika kolom FK boleh NULL</li></ul><div class="box tip"><p class="box-l">Tips dari lapangan</p><p>SQL Server <b>tidak</b> otomatis membuat index untuk kolom foreign key, padahal kolom ini sering dipakai JOIN dan pemeriksaan saat data induk dihapus (Hari 5).</p></div></div></div><footer class="sf"><span>Bab 3</span><span>41 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="UNIQUE + NULL: demo gagal" aria-label="Slide 42: UNIQUE + NULL: demo gagal">
+<div class="sb"><h2 class="st">UNIQUE + NULL: demo gagal</h2><div class="sc"><pre class="code"><code>INSERT INTO dbo.Employee (DepartmentID, FullName, Email, Salary)
+VALUES (1, N'Rudi Hartono', NULL, 8000000);    -- berhasil
+
+INSERT INTO dbo.Employee (DepartmentID, FullName, Email, Salary)
+VALUES (1, N'Lina Marlina', NULL, 8500000);    -- GAGAL
+
+-- Msg 2627: Violation of UNIQUE KEY constraint 'UQ_Employee_Email'.
+-- The duplicate key value is (<NULL>).</code></pre><p class="ask">Kasus yang sama ada di Customer.Email pada SalesDB.</p></div></div><footer class="sf"><span>Bab 3</span><span>42 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Filtered unique index" aria-label="Slide 43: Filtered unique index">
+<div class="sb"><h2 class="st">Filtered unique index</h2><div class="sc"><pre class="code"><code>ALTER TABLE dbo.Employee DROP CONSTRAINT UQ_Employee_Email;
+
+CREATE UNIQUE NONCLUSTERED INDEX UQ_Employee_Email
+    ON dbo.Employee (Email)
+    WHERE Email IS NOT NULL;</code></pre><ul class="sm"><li>Karyawan tanpa email boleh banyak; email yang sama tetap ditolak (Msg 2601)</li><li>Butuh <code>ANSI_NULLS</code> dan <code>QUOTED_IDENTIFIER</code> ON (default di SSMS)</li><li>Bukan constraint, jadi tidak bisa dirujuk foreign key</li></ul></div></div><footer class="sf"><span>Bab 3</span><span>43 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="CHECK dan DEFAULT" aria-label="Slide 44: CHECK dan DEFAULT">
+<div class="sb"><h2 class="st">CHECK dan DEFAULT</h2><div class="sc"><div class="two"><div><h3>CHECK</h3><pre class="code"><code>CHECK (Salary > 0)
+CHECK (EndTime > StartTime)
+CHECK (Status IN ('Active','Leave'))</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p>CHECK <b>meloloskan NULL</b>: kondisi dengan NULL bernilai UNKNOWN, dan CHECK hanya menolak FALSE. Tambahkan NOT NULL bila perlu.</p></div></div><div><h3>DEFAULT</h3><ul class=""><li>Dipakai jika kolom tidak disebut di INSERT, atau ditulis <code>DEFAULT</code></li><li>Menulis <code>NULL</code> eksplisit <b>tidak</b> memicu DEFAULT</li></ul></div></div></div></div><footer class="sf"><span>Bab 3</span><span>44 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="ALTER TABLE dan script idempotent" aria-label="Slide 45: ALTER TABLE dan script idempotent">
+<div class="sb"><h2 class="st">ALTER TABLE dan script idempotent</h2><div class="sc"><div class="two"><div><pre class="code"><code>ALTER TABLE dbo.Employee
+    ADD Phone VARCHAR(20) NULL;
+
+ALTER TABLE dbo.Employee ADD IsActive BIT NOT NULL
+    CONSTRAINT DF_Employee_IsActive DEFAULT 1;
+
+ALTER TABLE dbo.Employee
+    DROP CONSTRAINT CK_Employee_Phone;</code></pre></div><div><pre class="code"><code>IF DB_ID(N'SalesDB') IS NULL
+    CREATE DATABASE SalesDB;
+GO
+-- hapus tabel anak lebih dulu
+DROP TABLE IF EXISTS dbo.OrderDetail;
+DROP TABLE IF EXISTS dbo.[Order];
+...</code></pre></div></div><p class="note-line sm">Kolom NOT NULL baru pada tabel berisi data wajib disertai DEFAULT. Untuk view, function, procedure, dan trigger: <code>CREATE OR ALTER</code> (Hari 4).</p></div></div><footer class="sf"><span>Bab 3</span><span>45 / 82</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L2.2: implementasi physical design" aria-label="Slide 46: Latihan L2.2: implementasi physical design">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L2.2: implementasi physical design</h2><div class="sc"><p class="lead">Wujudkan hasil L1.3 menjadi database SalesDB dengan lima tabel (tanpa <code>ProductPriceAudit</code>).</p><ul class=""><li>Semua constraint diberi nama sesuai konvensi</li><li><code>Customer.Email</code> memakai filtered unique index</li><li>Script bisa dijalankan ulang</li><li>Urutan pembuatan dan penghapusan memperhatikan dependency FK</li></ul><div class="timer" data-min="25"><span class="tm-d">25:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 3</span><span>46 / 82</span></footer>
+</section>
+<section class="slide k-handoff" data-title="Pembahasan L2.2" aria-label="Slide 47: Pembahasan L2.2">
+<div class="sb"><p class="tag act">Pembahasan</p><h2 class="st">Pembahasan L2.2</h2><div class="sc"><div class="handoff"><p>Beralih ke</p><p class="hf-file">Catatan Trainer Hari 2</p><p class="hf-sheet">Kunci L2.2 dan L2.3 — script lengkap SalesDB</p></div></div></div><footer class="sf"><span>Bab 3</span><span>47 / 82</span></footer>
+</section>
+<section class="slide k-quiz" data-title="Cek pemahaman Bab 3" aria-label="Slide 48: Cek pemahaman Bab 3">
+<div class="sb"><p class="tag quiz">Cek pemahaman</p><h2 class="st">Cek pemahaman Bab 3</h2><div class="sc"><ol class=""><li>Kenapa karyawan kedua tanpa email ditolak constraint UNIQUE, dan apa solusinya?</li><li>Kolom <code>Discount DECIMAL(5,2) NULL</code> punya <code>CHECK (Discount BETWEEN 0 AND 50)</code>. Apakah NULL diterima?</li><li>Kenapa IDENTITY tidak cocok untuk nomor faktur pajak?</li></ol></div></div><footer class="sf"><span>Bab 3</span><span>48 / 82</span></footer>
+</section>
+<section class="slide k-answer" data-title="Jawaban cek pemahaman Bab 3" aria-label="Slide 49: Jawaban cek pemahaman Bab 3">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Jawaban cek pemahaman Bab 3</h2><div class="sc"><ol class=""><li>UNIQUE menganggap NULL sebagai nilai, jadi hanya satu baris boleh NULL. Solusinya filtered unique index dengan <code>WHERE Email IS NOT NULL</code>.</li><li>Diterima. Perbandingan dengan NULL bernilai UNKNOWN, dan CHECK hanya menolak FALSE.</li><li>Nilainya bisa melompat karena INSERT yang gagal atau di-rollback tetap memakai nomor, dan restart server bisa melompatkan nilai.</li></ol></div></div><footer class="sf"><span>Bab 3</span><span>49 / 82</span></footer>
+</section>
+<section class="slide k-divider" data-title="Mengelola Data (DML)" aria-label="Slide 50: Mengelola Data (DML)">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 4</p><table class="dv-t"><thead><tr><th colspan="2">Mengelola Data (DML)</th></tr></thead><tbody><tr><td class="k">4.1</td><td>INSERT</td></tr><tr><td class="k">4.2</td><td>Mengambil ID baru</td></tr><tr><td class="k">4.3</td><td>UPDATE dan DELETE yang aman</td></tr><tr><td class="k">4.4</td><td>DELETE vs TRUNCATE</td></tr><tr><td class="k">4.5</td><td>BEGIN TRAN ... ROLLBACK</td></tr><tr><td class="k">4.6</td><td>Membaca pesan error</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 4</span><span>50 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="INSERT" aria-label="Slide 51: INSERT">
+<div class="sb"><h2 class="st">INSERT</h2><div class="sc"><pre class="code"><code>INSERT INTO dbo.Department (DepartmentName) VALUES (N'IT');
+
+INSERT INTO dbo.Department (DepartmentName)
+VALUES (N'Human Resources'), (N'Marketing'), (N'Operations');   -- maks 1000 baris
+
+INSERT INTO dbo.Department (DepartmentName)
+SELECT DISTINCT DepartmentName FROM dbo.StagingEmployee;</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p>Selalu tulis daftar kolom. Tanpa daftar kolom, INSERT bergantung pada urutan kolom tabel dan rusak begitu ada kolom baru.</p></div></div></div><footer class="sf"><span>Bab 4</span><span>51 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Mengambil ID baru" aria-label="Slide 52: Mengambil ID baru">
+<div class="sb"><h2 class="st">Mengambil ID baru</h2><div class="sc"><table class="t "><thead><tr><th>Cara</th><th>Mengembalikan</th><th>Aman?</th></tr></thead><tbody><tr><td><code>OUTPUT inserted.ID</code></td><td>Semua ID dari perintah itu, termasuk multi-baris</td><td><b>Ya</b>, paling lengkap</td></tr><tr><td><code>SCOPE_IDENTITY()</code></td><td>ID terakhir di session dan scope yang sama</td><td><b>Ya</b>, untuk satu baris</td></tr><tr><td><code>@@IDENTITY</code></td><td>ID terakhir di session, <b>termasuk dari trigger</b></td><td>Berbahaya</td></tr><tr><td><code>IDENT_CURRENT('tabel')</code></td><td>ID terakhir tabel dari session mana pun</td><td><b>Tidak</b></td></tr></tbody></table><pre class="code"><code>INSERT INTO dbo.Department (DepartmentName)
+OUTPUT inserted.DepartmentID, inserted.DepartmentName
+VALUES (N'Legal'), (N'Procurement');</code></pre></div></div><footer class="sf"><span>Bab 4</span><span>52 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="UPDATE dan DELETE yang aman" aria-label="Slide 53: UPDATE dan DELETE yang aman">
+<div class="sb"><h2 class="st">UPDATE dan DELETE yang aman</h2><div class="sc"><div class="two"><div><h3>Tiga kebiasaan</h3><ol class=""><li>Jalankan <code>SELECT</code> dengan <code>WHERE</code> yang sama lebih dulu</li><li>Ubah <code>SELECT</code> menjadi <code>UPDATE</code>/<code>DELETE</code> tanpa mengubah <code>WHERE</code></li><li>Periksa jumlah baris yang berubah (<code>@@ROWCOUNT</code>)</li></ol><div class="box warn"><p class="box-l">Perhatian</p><p>Tanpa <code>WHERE</code>, seluruh isi tabel berubah. Sering terjadi saat hanya sebagian script diblok lalu ditekan F5.</p></div></div><div><h3>Melihat perubahan</h3><pre class="code"><code>UPDATE dbo.Employee
+SET    Salary = Salary * 1.10
+OUTPUT deleted.Salary AS GajiLama,
+       inserted.Salary AS GajiBaru
+WHERE  DepartmentID = 1;</code></pre></div></div></div></div><footer class="sf"><span>Bab 4</span><span>53 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="DELETE vs TRUNCATE" aria-label="Slide 54: DELETE vs TRUNCATE">
+<div class="sb"><h2 class="st">DELETE vs TRUNCATE</h2><div class="sc"><table class="t "><thead><tr><th></th><th><code>DELETE</code></th><th><code>TRUNCATE TABLE</code></th></tr></thead><tbody><tr><td>WHERE</td><td>Bisa</td><td>Tidak; selalu seluruh tabel</td></tr><tr><td>Cara kerja</td><td>Baris per baris, dicatat di log</td><td>Membebaskan halaman data; jauh lebih cepat</td></tr><tr><td>IDENTITY</td><td>Tetap berlanjut</td><td>Kembali ke nilai awal</td></tr><tr><td>Tabel yang dirujuk FK</td><td>Bisa</td><td>Tidak bisa</td></tr><tr><td>Trigger DELETE</td><td>Aktif</td><td>Tidak aktif</td></tr><tr><td>Bisa di-rollback</td><td>Ya</td><td>Ya</td></tr></tbody></table></div></div><footer class="sf"><span>Bab 4</span><span>54 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Jaring pengaman: BEGIN TRAN ... ROLLBACK" aria-label="Slide 55: Jaring pengaman: BEGIN TRAN ... ROLLBACK">
+<div class="sb"><h2 class="st">Jaring pengaman: BEGIN TRAN ... ROLLBACK</h2><div class="sc"><pre class="code"><code>BEGIN TRAN;
+
+    UPDATE dbo.Employee SET Salary = Salary * 1.10 WHERE DepartmentID = 1;
+    SELECT EmployeeID, FullName, Salary FROM dbo.Employee WHERE DepartmentID = 1;
+
+ROLLBACK;     -- jika sudah benar, ganti dengan COMMIT;</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p>Transaksi yang lupa ditutup mengunci baris dan menahan pengguna lain. Periksa dengan <code>SELECT @@TRANCOUNT;</code> (harus 0).</p></div></div></div><footer class="sf"><span>Bab 4</span><span>55 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Membaca pesan error" aria-label="Slide 56: Membaca pesan error">
+<div class="sb"><h2 class="st">Membaca pesan error</h2><div class="sc"><table class="t sm"><thead><tr><th>Msg</th><th>Arti</th><th>Penyebab umum</th></tr></thead><tbody><tr><td>515</td><td>Cannot insert the value NULL</td><td>Kolom NOT NULL tidak diisi</td></tr><tr><td>547</td><td>Conflicted with FOREIGN KEY / CHECK constraint</td><td>Rujukan tidak ada, induk masih dipakai, atau nilai melanggar CHECK</td></tr><tr><td>2627</td><td>Violation of PRIMARY KEY / UNIQUE KEY</td><td>Nilai duplikat pada PK atau UNIQUE</td></tr><tr><td>2601</td><td>Cannot insert duplicate key row ... unique index</td><td>Duplikat pada unique index, termasuk filtered</td></tr><tr><td>2628 / 8152</td><td>String or binary data would be truncated</td><td>Teks lebih panjang dari ukuran kolom</td></tr><tr><td>245</td><td>Conversion failed when converting ...</td><td>Implicit conversion teks ke angka gagal</td></tr><tr><td>8115</td><td>Arithmetic overflow error</td><td>Angka melebihi rentang data type</td></tr></tbody></table><p class="note-line sm">Nama constraint di pesan error langsung menunjukkan aturan mana yang dilanggar.</p></div></div><footer class="sf"><span>Bab 4</span><span>56 / 82</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L2.3: mengisi data" aria-label="Slide 57: Latihan L2.3: mengisi data">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L2.3: mengisi data</h2><div class="sc"><p class="lead">Isi SalesDB dengan data sheet <code>4_3NF</code>, ditambah:</p><ul class=""><li>Pelanggan <b>Dewi Lestari</b>, Jakarta, tanpa email, belum pernah order</li><li>Harga saat ini: Headset USB kini Rp375.000; produk lain sama dengan harga di faktur</li><li>Stok: Monitor 15, Headset 40, Buku 200, Pulpen 150, Mouse 60, Keyboard 25</li></ul><p class="note-line sm">Isi tabel induk lebih dulu. Ingat prefix N dan literal tanggal yang aman.</p><div class="timer" data-min="20"><span class="tm-d">20:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 4</span><span>57 / 82</span></footer>
+</section>
+<section class="slide k-handoff" data-title="Pembahasan L2.3" aria-label="Slide 58: Pembahasan L2.3">
+<div class="sb"><p class="tag act">Pembahasan</p><h2 class="st">Pembahasan L2.3</h2><div class="sc"><div class="handoff"><p>Beralih ke</p><p class="hf-file">Catatan Trainer Hari 2</p><p class="hf-sheet">Kunci L2.2 dan L2.3 — bagian INSERT</p></div></div></div><footer class="sf"><span>Bab 4</span><span>58 / 82</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L2.4: memicu error constraint" aria-label="Slide 59: Latihan L2.4: memicu error constraint">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L2.4: memicu error constraint</h2><div class="sc"><p class="lead">Jalankan lima kasus, catat nomor error dan nama constraint, lalu jelaskan aturan bisnis yang dijaga.</p><ol class=""><li>Detail order dengan <code>Quantity = 0</code></li><li>Order untuk <code>CustomerID</code> 99</li><li>Produk dengan stok -5</li><li>Pelanggan baru <b>tanpa email</b> (seharusnya berhasil)</li><li>Pelanggan baru dengan email <code>budi@mail.com</code> (seharusnya ditolak)</li></ol><p class="note-line sm">Kerjakan nomor 4 dan 5 di dalam <code>BEGIN TRAN</code> … <code>ROLLBACK</code> agar data uji tidak tersimpan.</p><div class="timer" data-min="10"><span class="tm-d">10:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 4</span><span>59 / 82</span></footer>
+</section>
+<section class="slide k-answer" data-title="Pembahasan L2.4" aria-label="Slide 60: Pembahasan L2.4">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Pembahasan L2.4</h2><div class="sc"><table class="t "><thead><tr><th>Kasus</th><th>Hasil</th></tr></thead><tbody><tr><td>Quantity = 0</td><td>Ditolak <code>CK_OrderDetail_Quantity</code> (Msg 547)</td></tr><tr><td>CustomerID 99</td><td>Ditolak <code>FK_Order_Customer</code> (Msg 547)</td></tr><tr><td>Stok -5</td><td>Ditolak <code>CK_Product_Stock</code> (Msg 547)</td></tr><tr><td>Pelanggan kedua tanpa email</td><td><b>Berhasil</b>, berkat filtered unique index</td></tr><tr><td>Email ganda</td><td>Ditolak <code>UQ_Customer_Email</code> (Msg 2601, karena unique index)</td></tr></tbody></table></div></div><footer class="sf"><span>Bab 4</span><span>60 / 82</span></footer>
+</section>
+<section class="slide k-quiz" data-title="Cek pemahaman Bab 4" aria-label="Slide 61: Cek pemahaman Bab 4">
+<div class="sb"><p class="tag quiz">Cek pemahaman</p><h2 class="st">Cek pemahaman Bab 4</h2><div class="sc"><ol class=""><li>Sebutkan dua perbedaan DELETE dan TRUNCATE.</li><li>Kenapa <code>@@IDENTITY</code> berbahaya untuk mengambil ID baru?</li><li>Muncul Msg 547 yang menyebut <code>FK_Order_Customer</code> saat menghapus pelanggan. Apa artinya?</li></ol></div></div><footer class="sf"><span>Bab 4</span><span>61 / 82</span></footer>
+</section>
+<section class="slide k-answer" data-title="Jawaban cek pemahaman Bab 4" aria-label="Slide 62: Jawaban cek pemahaman Bab 4">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Jawaban cek pemahaman Bab 4</h2><div class="sc"><ol class=""><li>Contoh: TRUNCATE tidak bisa memakai WHERE, mengembalikan IDENTITY ke nilai awal, tidak bisa dipakai pada tabel yang dirujuk FK, dan tidak memicu trigger DELETE.</li><li>Nilainya adalah ID terakhir di session, termasuk yang dihasilkan trigger. Jika ada trigger yang meng-insert ke tabel lain, yang dikembalikan adalah ID tabel tersebut. Gunakan <code>SCOPE_IDENTITY()</code> atau <code>OUTPUT</code>.</li><li>Pelanggan itu masih punya order. Karena FK memakai NO ACTION, penghapusan ditolak agar riwayat transaksi tidak hilang.</li></ol></div></div><footer class="sf"><span>Bab 4</span><span>62 / 82</span></footer>
+</section>
+<section class="slide k-divider" data-title="Query Dasar dengan SELECT" aria-label="Slide 63: Query Dasar dengan SELECT">
+<div class="sb"><div class="sc"><div class="dv"><p class="dv-no">Bab 5</p><table class="dv-t"><thead><tr><th colspan="2">Query Dasar dengan SELECT</th></tr></thead><tbody><tr><td class="k">5.1</td><td>SELECT, alias, kolom hitungan</td></tr><tr><td class="k">5.2</td><td>Filter dengan WHERE</td></tr><tr><td class="k">5.3</td><td>Menangani NULL</td></tr><tr><td class="k">5.4–5.5</td><td>ORDER BY, TOP, dan paging</td></tr><tr><td class="k">5.6</td><td>Logical query processing</td></tr></tbody></table></div></div></div><footer class="sf"><span>Bab 5</span><span>63 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="SELECT, alias, dan kolom hitungan" aria-label="Slide 64: SELECT, alias, dan kolom hitungan">
+<div class="sb"><h2 class="st">SELECT, alias, dan kolom hitungan</h2><div class="sc"><pre class="code"><code>SELECT ProductID,
+       Name              AS ProductName,
+       ListPrice,
+       ListPrice * 0.9   AS DiscountPrice,
+       ListPrice - StandardCost AS Margin
+FROM   SalesLT.Product;</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p>Hindari <code>SELECT *</code> di kode aplikasi dan view: kolom yang tidak perlu ikut terkirim, dan aplikasi rusak saat kolom tabel berubah.</p></div></div></div><footer class="sf"><span>Bab 5</span><span>64 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Menggabungkan teks" aria-label="Slide 65: Menggabungkan teks">
+<div class="sb"><h2 class="st">Menggabungkan teks</h2><div class="sc"><pre class="code"><code>SELECT FirstName + ' ' + MiddleName + ' ' + LastName   AS PakaiPlus,      -- NULL jika MiddleName NULL
+       CONCAT(FirstName, ' ', MiddleName, ' ', LastName) AS PakaiConcat,   -- NULL = teks kosong
+       CONCAT_WS(' ', FirstName, MiddleName, LastName)   AS PakaiConcatWs  -- lewati NULL
+FROM   SalesLT.Customer;</code></pre><p class="note-line sm"><code>+</code> menghasilkan NULL jika salah satu bagian NULL. <code>CONCAT_WS</code> tersedia sejak SQL Server 2017.</p></div></div><footer class="sf"><span>Bab 5</span><span>65 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="WHERE dan prioritas AND/OR" aria-label="Slide 66: WHERE dan prioritas AND/OR">
+<div class="sb"><h2 class="st">WHERE dan prioritas AND/OR</h2><div class="sc"><pre class="code"><code>-- Dibaca: Color = 'Black' OR (Color = 'Red' AND ListPrice > 1000)
+WHERE Color = 'Black' OR Color = 'Red' AND ListPrice > 1000
+
+-- Yang dimaksud:
+WHERE (Color = 'Black' OR Color = 'Red') AND ListPrice > 1000</code></pre><p class="ask">AND selalu diproses lebih dulu daripada OR. Biasakan memakai tanda kurung.</p></div></div><footer class="sf"><span>Bab 5</span><span>66 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="IN dan jebakan NULL pada NOT IN" aria-label="Slide 67: IN dan jebakan NULL pada NOT IN">
+<div class="sb"><h2 class="st">IN dan jebakan NULL pada NOT IN</h2><div class="sc"><pre class="code"><code>WHERE Color IN ('Black', 'Red', 'Silver')
+
+WHERE Color NOT IN ('Black', NULL)
+-- sama dengan: Color <> 'Black' AND Color <> NULL
+-- bagian kedua selalu UNKNOWN → hasil SELALU kosong</code></pre><div class="box warn"><p class="box-l">Perhatian</p><p>Jebakan ini paling sering muncul saat daftar <code>NOT IN</code> berasal dari subquery yang kolomnya bisa NULL (Hari 3).</p></div></div></div><footer class="sf"><span>Bab 5</span><span>67 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="BETWEEN dan filter tanggal" aria-label="Slide 68: BETWEEN dan filter tanggal">
+<div class="sb"><h2 class="st">BETWEEN dan filter tanggal</h2><div class="sc"><p class="lead"><code>BETWEEN a AND b</code> bersifat inklusif, sama dengan <code>&gt;= a AND &lt;= b</code>.</p><pre class="code"><code>-- Semua order bulan Juni 2008, apa pun jamnya
+SELECT SalesOrderID, OrderDate
+FROM   SalesLT.SalesOrderHeader
+WHERE  OrderDate >= '20080601' AND OrderDate < '20080701';</code></pre><p class="note-line">Untuk kolom tanggal-jam, pola <code>&gt;=</code> dan <code>&lt;</code> lebih aman daripada BETWEEN.</p></div></div><footer class="sf"><span>Bab 5</span><span>68 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="LIKE" aria-label="Slide 69: LIKE">
+<div class="sb"><h2 class="st">LIKE</h2><div class="sc"><table class="t "><thead><tr><th>Wildcard</th><th>Arti</th><th>Contoh</th></tr></thead><tbody><tr><td><code>%</code></td><td>Nol atau lebih karakter</td><td><code>Name LIKE 'Mountain%'</code></td></tr><tr><td><code>_</code></td><td>Tepat satu karakter</td><td><code>ProductNumber LIKE 'FR-R92_-58'</code></td></tr><tr><td><code>[ ]</code></td><td>Satu karakter dari daftar</td><td><code>ProductNumber LIKE 'FR-[RM]%'</code></td></tr><tr><td><code>[^ ]</code></td><td>Satu karakter di luar daftar</td><td><code>Phone LIKE '%[^0-9 ()-]%'</code></td></tr></tbody></table><p class="note-line sm">Mencari tanda persen itu sendiri: <code>LIKE '%10[%]%'</code>. Pola yang diawali <code>%</code> tidak bisa memakai index secara efisien (Hari 5).</p></div></div><footer class="sf"><span>Bab 5</span><span>69 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Menangani NULL" aria-label="Slide 70: Menangani NULL">
+<div class="sb"><h2 class="st">Menangani NULL</h2><div class="sc"><div class="two"><div><pre class="code"><code>WHERE MiddleName IS NULL
+
+ISNULL(Color, 'Tanpa warna')
+COALESCE(Size, '-')
+ListPrice / NULLIF(StandardCost, 0)</code></pre></div><div><table class="t sm"><thead><tr><th></th><th><code>ISNULL</code></th><th><code>COALESCE</code></th></tr></thead><tbody><tr><td>Argumen</td><td>Tepat dua</td><td>Dua atau lebih</td></tr><tr><td>Data type hasil</td><td>Ikut argumen pertama</td><td>Precedence tertinggi</td></tr><tr><td>Standar SQL</td><td>Tidak</td><td>Ya</td></tr></tbody></table><div class="box warn"><p class="box-l">Perhatian</p><p><code>ISNULL(KolomVarchar5, 'Tidak diketahui')</code> memotong teks pengganti menjadi 5 karakter.</p></div></div></div></div></div><footer class="sf"><span>Bab 5</span><span>70 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="ORDER BY, TOP, dan paging" aria-label="Slide 71: ORDER BY, TOP, dan paging">
+<div class="sb"><h2 class="st">ORDER BY, TOP, dan paging</h2><div class="sc"><pre class="code"><code>SELECT TOP (5) Name, ListPrice FROM SalesLT.Product ORDER BY ListPrice DESC;
+
+DECLARE @Page INT = 3, @PageSize INT = 20;
+SELECT ProductID, Name, ListPrice
+FROM   SalesLT.Product
+ORDER BY ListPrice DESC, ProductID          -- penentu urutan yang unik
+OFFSET (@Page - 1) * @PageSize ROWS FETCH NEXT @PageSize ROWS ONLY;</code></pre><ul class="sm"><li>NULL berada paling atas pada urutan ASC</li><li><code>TOP</code> tanpa <code>ORDER BY</code> tidak menjamin baris mana yang diambil</li><li>Paging butuh urutan unik, jika tidak baris bisa muncul dua kali atau terlewat</li></ul></div></div><footer class="sf"><span>Bab 5</span><span>71 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Logical query processing" aria-label="Slide 72: Logical query processing">
+<div class="sb"><h2 class="st">Logical query processing</h2><div class="sc"><figure class="fig wide"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+Cgo8IS0tIEdlbmVyYXRlZCBieSBncmFwaHZpeiB2ZXJzaW9uIDIuNDMuMCAoMCkKIC0tPgo8IS0tIFRpdGxlOiBHIFBhZ2VzOiAxIC0tPgo8c3ZnIHdpZHRoPSIxMDYycHQiIGhlaWdodD0iODlwdCIKIHZpZXdCb3g9IjAuMDAgMC4wMCAxMDYyLjIwIDg5LjIwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj4KPGcgaWQ9ImdyYXBoMCIgY2xhc3M9ImdyYXBoIiB0cmFuc2Zvcm09InNjYWxlKDEgMSkgcm90YXRlKDApIHRyYW5zbGF0ZSgyMS42IDY3LjYpIj4KPHRpdGxlPkc8L3RpdGxlPgo8cG9seWdvbiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSJ0cmFuc3BhcmVudCIgcG9pbnRzPSItMjEuNiwyMS42IC0yMS42LC02Ny42IDEwNDAuNiwtNjcuNiAxMDQwLjYsMjEuNiAtMjEuNiwyMS42Ii8+CjwhLS0gbjEgLS0+CjxnIGlkPSJub2RlMSIgY2xhc3M9Im5vZGUiPgo8dGl0bGU+bjE8L3RpdGxlPgo8cGF0aCBmaWxsPSIjZGRlYmY3IiBzdHJva2U9ImJsYWNrIiBkPSJNNzYsLTQxQzc2LC00MSAxMiwtNDEgMTIsLTQxIDYsLTQxIDAsLTM1IDAsLTI5IDAsLTI5IDAsLTE3IDAsLTE3IDAsLTExIDYsLTUgMTIsLTUgMTIsLTUgNzYsLTUgNzYsLTUgODIsLTUgODgsLTExIDg4LC0xNyA4OCwtMTcgODgsLTI5IDg4LC0yOSA4OCwtMzUgODIsLTQxIDc2LC00MSIvPgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSI0NCIgeT0iLTE4LjkiIGZvbnQtZmFtaWx5PSJEZWphVnUgU2FucyxWZXJkYW5hLEdlbmV2YSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE3LjAwIj4xLiBGUk9NPC90ZXh0Pgo8L2c+CjwhLS0gbjIgLS0+CjxnIGlkPSJub2RlMiIgY2xhc3M9Im5vZGUiPgo8dGl0bGU+bjI8L3RpdGxlPgo8cGF0aCBmaWxsPSIjZGRlYmY3IiBzdHJva2U9ImJsYWNrIiBkPSJNMjAxLC00MUMyMDEsLTQxIDEyNSwtNDEgMTI1LC00MSAxMTksLTQxIDExMywtMzUgMTEzLC0yOSAxMTMsLTI5IDExMywtMTcgMTEzLC0xNyAxMTMsLTExIDExOSwtNSAxMjUsLTUgMTI1LC01IDIwMSwtNSAyMDEsLTUgMjA3LC01IDIxMywtMTEgMjEzLC0xNyAyMTMsLTE3IDIxMywtMjkgMjEzLC0yOSAyMTMsLTM1IDIwNywtNDEgMjAxLC00MSIvPgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSIxNjMiIHk9Ii0xOC45IiBmb250LWZhbWlseT0iRGVqYVZ1IFNhbnMsVmVyZGFuYSxHZW5ldmEsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNy4wMCI+Mi4gV0hFUkU8L3RleHQ+CjwvZz4KPCEtLSBuMSYjNDU7Jmd0O24yIC0tPgo8ZyBpZD0iZWRnZTEiIGNsYXNzPSJlZGdlIj4KPHRpdGxlPm4xJiM0NTsmZ3Q7bjI8L3RpdGxlPgo8cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBkPSJNODguMjMsLTIzQzkyLjgzLC0yMyA5Ny41NSwtMjMgMTAyLjI5LC0yMyIvPgo8cG9seWdvbiBmaWxsPSJibGFjayIgc3Ryb2tlPSJibGFjayIgcG9pbnRzPSIxMDIuNjMsLTI2LjUgMTEyLjYzLC0yMyAxMDIuNjMsLTE5LjUgMTAyLjYzLC0yNi41Ii8+CjwvZz4KPCEtLSBuMyAtLT4KPGcgaWQ9Im5vZGUzIiBjbGFzcz0ibm9kZSI+Cjx0aXRsZT5uMzwvdGl0bGU+CjxwYXRoIGZpbGw9IiNkZGViZjciIHN0cm9rZT0iYmxhY2siIGQ9Ik0zNTIsLTQxQzM1MiwtNDEgMjUwLC00MSAyNTAsLTQxIDI0NCwtNDEgMjM4LC0zNSAyMzgsLTI5IDIzOCwtMjkgMjM4LC0xNyAyMzgsLTE3IDIzOCwtMTEgMjQ0LC01IDI1MCwtNSAyNTAsLTUgMzUyLC01IDM1MiwtNSAzNTgsLTUgMzY0LC0xMSAzNjQsLTE3IDM2NCwtMTcgMzY0LC0yOSAzNjQsLTI5IDM2NCwtMzUgMzU4LC00MSAzNTIsLTQxIi8+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjMwMSIgeT0iLTE4LjkiIGZvbnQtZmFtaWx5PSJEZWphVnUgU2FucyxWZXJkYW5hLEdlbmV2YSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE3LjAwIj4zLiBHUk9VUCBCWTwvdGV4dD4KPC9nPgo8IS0tIG4yJiM0NTsmZ3Q7bjMgLS0+CjxnIGlkPSJlZGdlMiIgY2xhc3M9ImVkZ2UiPgo8dGl0bGU+bjImIzQ1OyZndDtuMzwvdGl0bGU+CjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxhY2siIGQ9Ik0yMTMuMSwtMjNDMjE3Ljg5LC0yMyAyMjIuODEsLTIzIDIyNy43NywtMjMiLz4KPHBvbHlnb24gZmlsbD0iYmxhY2siIHN0cm9rZT0iYmxhY2siIHBvaW50cz0iMjI3Ljk0LC0yNi41IDIzNy45NCwtMjMgMjI3Ljk0LC0xOS41IDIyNy45NCwtMjYuNSIvPgo8L2c+CjwhLS0gbjQgLS0+CjxnIGlkPSJub2RlNCIgY2xhc3M9Im5vZGUiPgo8dGl0bGU+bjQ8L3RpdGxlPgo8cGF0aCBmaWxsPSIjZGRlYmY3IiBzdHJva2U9ImJsYWNrIiBkPSJNNDgxLC00MUM0ODEsLTQxIDQwMSwtNDEgNDAxLC00MSAzOTUsLTQxIDM4OSwtMzUgMzg5LC0yOSAzODksLTI5IDM4OSwtMTcgMzg5LC0xNyAzODksLTExIDM5NSwtNSA0MDEsLTUgNDAxLC01IDQ4MSwtNSA0ODEsLTUgNDg3LC01IDQ5MywtMTEgNDkzLC0xNyA0OTMsLTE3IDQ5MywtMjkgNDkzLC0yOSA0OTMsLTM1IDQ4NywtNDEgNDgxLC00MSIvPgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSI0NDEiIHk9Ii0xOC45IiBmb250LWZhbWlseT0iRGVqYVZ1IFNhbnMsVmVyZGFuYSxHZW5ldmEsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNy4wMCI+NC4gSEFWSU5HPC90ZXh0Pgo8L2c+CjwhLS0gbjMmIzQ1OyZndDtuNCAtLT4KPGcgaWQ9ImVkZ2UzIiBjbGFzcz0iZWRnZSI+Cjx0aXRsZT5uMyYjNDU7Jmd0O240PC90aXRsZT4KPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgZD0iTTM2NC4xNCwtMjNDMzY4LjkzLC0yMyAzNzMuNzgsLTIzIDM3OC41NywtMjMiLz4KPHBvbHlnb24gZmlsbD0iYmxhY2siIHN0cm9rZT0iYmxhY2siIHBvaW50cz0iMzc4Ljk1LC0yNi41IDM4OC45NSwtMjMgMzc4Ljk1LC0xOS41IDM3OC45NSwtMjYuNSIvPgo8L2c+CjwhLS0gbjUgLS0+CjxnIGlkPSJub2RlNSIgY2xhc3M9Im5vZGUiPgo8dGl0bGU+bjU8L3RpdGxlPgo8cGF0aCBmaWxsPSIjZmZlNjk5IiBzdHJva2U9ImJsYWNrIiBkPSJNNjA3LC00MUM2MDcsLTQxIDUzMCwtNDEgNTMwLC00MSA1MjQsLTQxIDUxOCwtMzUgNTE4LC0yOSA1MTgsLTI5IDUxOCwtMTcgNTE4LC0xNyA1MTgsLTExIDUyNCwtNSA1MzAsLTUgNTMwLC01IDYwNywtNSA2MDcsLTUgNjEzLC01IDYxOSwtMTEgNjE5LC0xNyA2MTksLTE3IDYxOSwtMjkgNjE5LC0yOSA2MTksLTM1IDYxMywtNDEgNjA3LC00MSIvPgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSI1NjguNSIgeT0iLTE4LjkiIGZvbnQtZmFtaWx5PSJEZWphVnUgU2FucyxWZXJkYW5hLEdlbmV2YSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE3LjAwIj41LiBTRUxFQ1Q8L3RleHQ+CjwvZz4KPCEtLSBuNCYjNDU7Jmd0O241IC0tPgo8ZyBpZD0iZWRnZTQiIGNsYXNzPSJlZGdlIj4KPHRpdGxlPm40JiM0NTsmZ3Q7bjU8L3RpdGxlPgo8cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBkPSJNNDkzLjA1LC0yM0M0OTcuNzUsLTIzIDUwMi41NSwtMjMgNTA3LjMzLC0yMyIvPgo8cG9seWdvbiBmaWxsPSJibGFjayIgc3Ryb2tlPSJibGFjayIgcG9pbnRzPSI1MDcuNzIsLTI2LjUgNTE3LjcyLC0yMyA1MDcuNzIsLTE5LjUgNTA3LjcyLC0yNi41Ii8+CjwvZz4KPCEtLSBuNiAtLT4KPGcgaWQ9Im5vZGU2IiBjbGFzcz0ibm9kZSI+Cjx0aXRsZT5uNjwvdGl0bGU+CjxwYXRoIGZpbGw9IiNkZGViZjciIHN0cm9rZT0iYmxhY2siIGQ9Ik03NDksLTQxQzc0OSwtNDEgNjU2LC00MSA2NTYsLTQxIDY1MCwtNDEgNjQ0LC0zNSA2NDQsLTI5IDY0NCwtMjkgNjQ0LC0xNyA2NDQsLTE3IDY0NCwtMTEgNjUwLC01IDY1NiwtNSA2NTYsLTUgNzQ5LC01IDc0OSwtNSA3NTUsLTUgNzYxLC0xMSA3NjEsLTE3IDc2MSwtMTcgNzYxLC0yOSA3NjEsLTI5IDc2MSwtMzUgNzU1LC00MSA3NDksLTQxIi8+Cjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjcwMi41IiB5PSItMTguOSIgZm9udC1mYW1pbHk9IkRlamFWdSBTYW5zLFZlcmRhbmEsR2VuZXZhLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTcuMDAiPjYuIERJU1RJTkNUPC90ZXh0Pgo8L2c+CjwhLS0gbjUmIzQ1OyZndDtuNiAtLT4KPGcgaWQ9ImVkZ2U1IiBjbGFzcz0iZWRnZSI+Cjx0aXRsZT5uNSYjNDU7Jmd0O242PC90aXRsZT4KPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgZD0iTTYxOS4wMywtMjNDNjIzLjgxLC0yMyA2MjguNzEsLTIzIDYzMy42MiwtMjMiLz4KPHBvbHlnb24gZmlsbD0iYmxhY2siIHN0cm9rZT0iYmxhY2siIHBvaW50cz0iNjMzLjY5LC0yNi41IDY0My42OSwtMjMgNjMzLjY5LC0xOS41IDYzMy42OSwtMjYuNSIvPgo8L2c+CjwhLS0gbjcgLS0+CjxnIGlkPSJub2RlNyIgY2xhc3M9Im5vZGUiPgo8dGl0bGU+bjc8L3RpdGxlPgo8cGF0aCBmaWxsPSIjYzZlMGI0IiBzdHJva2U9ImJsYWNrIiBkPSJNODk5LC00MUM4OTksLTQxIDc5OCwtNDEgNzk4LC00MSA3OTIsLTQxIDc4NiwtMzUgNzg2LC0yOSA3ODYsLTI5IDc4NiwtMTcgNzg2LC0xNyA3ODYsLTExIDc5MiwtNSA3OTgsLTUgNzk4LC01IDg5OSwtNSA4OTksLTUgOTA1LC01IDkxMSwtMTEgOTExLC0xNyA5MTEsLTE3IDkxMSwtMjkgOTExLC0yOSA5MTEsLTM1IDkwNSwtNDEgODk5LC00MSIvPgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSI4NDguNSIgeT0iLTE4LjkiIGZvbnQtZmFtaWx5PSJEZWphVnUgU2FucyxWZXJkYW5hLEdlbmV2YSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE3LjAwIj43LiBPUkRFUiBCWTwvdGV4dD4KPC9nPgo8IS0tIG42JiM0NTsmZ3Q7bjcgLS0+CjxnIGlkPSJlZGdlNiIgY2xhc3M9ImVkZ2UiPgo8dGl0bGU+bjYmIzQ1OyZndDtuNzwvdGl0bGU+CjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxhY2siIGQ9Ik03NjEuMjQsLTIzQzc2Ni4wNywtMjMgNzcwLjk5LC0yMyA3NzUuOTEsLTIzIi8+Cjxwb2x5Z29uIGZpbGw9ImJsYWNrIiBzdHJva2U9ImJsYWNrIiBwb2ludHM9Ijc3NS45NywtMjYuNSA3ODUuOTcsLTIzIDc3NS45NywtMTkuNSA3NzUuOTcsLTI2LjUiLz4KPC9nPgo8IS0tIG44IC0tPgo8ZyBpZD0ibm9kZTgiIGNsYXNzPSJub2RlIj4KPHRpdGxlPm44PC90aXRsZT4KPHBhdGggZmlsbD0iI2RkZWJmNyIgc3Ryb2tlPSJibGFjayIgZD0iTTEwMDcsLTQ2QzEwMDcsLTQ2IDk0OCwtNDYgOTQ4LC00NiA5NDIsLTQ2IDkzNiwtNDAgOTM2LC0zNCA5MzYsLTM0IDkzNiwtMTIgOTM2LC0xMiA5MzYsLTYgOTQyLDAgOTQ4LDAgOTQ4LDAgMTAwNywwIDEwMDcsMCAxMDEzLDAgMTAxOSwtNiAxMDE5LC0xMiAxMDE5LC0xMiAxMDE5LC0zNCAxMDE5LC0zNCAxMDE5LC00MCAxMDEzLC00NiAxMDA3LC00NiIvPgo8dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSI5NzcuNSIgeT0iLTI4LjQiIGZvbnQtZmFtaWx5PSJEZWphVnUgU2FucyxWZXJkYW5hLEdlbmV2YSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE3LjAwIj44LiBUT1AgLzwvdGV4dD4KPHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iOTc3LjUiIHk9Ii05LjQiIGZvbnQtZmFtaWx5PSJEZWphVnUgU2FucyxWZXJkYW5hLEdlbmV2YSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE3LjAwIj5PRkZTRVQ8L3RleHQ+CjwvZz4KPCEtLSBuNyYjNDU7Jmd0O244IC0tPgo8ZyBpZD0iZWRnZTciIGNsYXNzPSJlZGdlIj4KPHRpdGxlPm43JiM0NTsmZ3Q7bjg8L3RpdGxlPgo8cGF0aCBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBkPSJNOTExLjE0LC0yM0M5MTUuOTYsLTIzIDkyMC44LC0yMyA5MjUuNTQsLTIzIi8+Cjxwb2x5Z29uIGZpbGw9ImJsYWNrIiBzdHJva2U9ImJsYWNrIiBwb2ludHM9IjkyNS43MiwtMjYuNSA5MzUuNzIsLTIzIDkyNS43MiwtMTkuNSA5MjUuNzIsLTI2LjUiLz4KPC9nPgo8L2c+Cjwvc3ZnPgo=" alt="Urutan logis pemrosesan query"></figure><ul class="sm"><li>Alias kolom <b>tidak bisa</b> dipakai di WHERE (WHERE diproses sebelum SELECT)</li><li>Alias kolom <b>bisa</b> dipakai di ORDER BY</li><li>TOP diproses paling akhir, setelah ORDER BY</li></ul></div></div><footer class="sf"><span>Bab 5</span><span>72 / 82</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L2.5: query dasar" aria-label="Slide 73: Latihan L2.5: query dasar">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L2.5: query dasar</h2><div class="sc"><ol class=""><li>Pelanggan yang tinggal di Jakarta</li><li>Produk seharga Rp100.000 sampai Rp1.000.000, urut dari termahal</li><li>Pelanggan yang tidak memiliki email</li><li>Daftar produk urut nama, halaman ke-2 dengan 3 produk per halaman</li></ol><div class="timer" data-min="15"><span class="tm-d">15:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Bab 5</span><span>73 / 82</span></footer>
+</section>
+<section class="slide k-handoff" data-title="Pembahasan L2.5" aria-label="Slide 74: Pembahasan L2.5">
+<div class="sb"><p class="tag act">Pembahasan</p><h2 class="st">Pembahasan L2.5</h2><div class="sc"><div class="handoff"><p>Beralih ke</p><p class="hf-file">Catatan Trainer Hari 2</p><p class="hf-sheet">Kunci L2.5 — query dasar</p></div></div></div><footer class="sf"><span>Bab 5</span><span>74 / 82</span></footer>
+</section>
+<section class="slide k-quiz" data-title="Cek pemahaman Bab 5" aria-label="Slide 75: Cek pemahaman Bab 5">
+<div class="sb"><p class="tag quiz">Cek pemahaman</p><h2 class="st">Cek pemahaman Bab 5</h2><div class="sc"><ol class=""><li>Kenapa <code>WHERE Color NOT IN ('Black', NULL)</code> tidak mengembalikan baris?</li><li>Kenapa <code>SELECT ListPrice * 0.9 AS Diskon ... WHERE Diskon &gt; 100</code> error?</li><li>Kenapa paging dengan <code>ORDER BY ListPrice</code> saja bisa menampilkan produk yang sama di dua halaman?</li></ol></div></div><footer class="sf"><span>Bab 5</span><span>75 / 82</span></footer>
+</section>
+<section class="slide k-answer" data-title="Jawaban cek pemahaman Bab 5" aria-label="Slide 76: Jawaban cek pemahaman Bab 5">
+<div class="sb"><p class="tag ans">Pembahasan</p><h2 class="st">Jawaban cek pemahaman Bab 5</h2><div class="sc"><ol class=""><li>Karena setara dengan <code>Color &lt;&gt; 'Black' AND Color &lt;&gt; NULL</code>, dan perbandingan dengan NULL selalu UNKNOWN.</li><li>WHERE diproses sebelum SELECT, sehingga alias belum dikenal. Tulis <code>WHERE ListPrice * 0.9 &gt; 100</code>.</li><li>Banyak produk berharga sama, sehingga urutannya tidak pasti. Tambahkan kolom unik seperti ProductID sebagai penentu urutan.</li></ol></div></div><footer class="sf"><span>Bab 5</span><span>76 / 82</span></footer>
+</section>
+<section class="slide k-activity" data-title="Latihan L2.6: UPDATE dan DELETE yang aman" aria-label="Slide 77: Latihan L2.6: UPDATE dan DELETE yang aman">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Latihan L2.6: UPDATE dan DELETE yang aman</h2><div class="sc"><p class="lead">Kerjakan di dalam <code>BEGIN TRAN</code> … <code>ROLLBACK</code>:</p><ol class=""><li>Naikkan harga semua produk Alat Tulis 10%, lalu periksa hasilnya</li><li>Coba hapus pelanggan Budi Santoso. Jelaskan kenapa ditolak</li><li>Hapus pelanggan Dewi Lestari. Jelaskan kenapa berhasil</li><li>Batalkan semua perubahan dan pastikan data kembali seperti semula</li></ol><div class="timer" data-min="10"><span class="tm-d">10:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Penutup</span><span>77 / 82</span></footer>
+</section>
+<section class="slide k-handoff" data-title="Pembahasan L2.6" aria-label="Slide 78: Pembahasan L2.6">
+<div class="sb"><p class="tag act">Pembahasan</p><h2 class="st">Pembahasan L2.6</h2><div class="sc"><div class="handoff"><p>Beralih ke</p><p class="hf-file">Catatan Trainer Hari 2</p><p class="hf-sheet">Kunci L2.6</p></div></div></div><footer class="sf"><span>Penutup</span><span>78 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Rangkuman Hari 2" aria-label="Slide 79: Rangkuman Hari 2">
+<div class="sb"><h2 class="st">Rangkuman Hari 2</h2><div class="sc"><div class="two"><div><ul class=""><li>Data file dan log file; autogrowth dalam MB yang tetap</li><li>Pembagian dua INT membuang desimal; uang memakai DECIMAL</li><li>Selalu tulis panjang pada VARCHAR(n)</li><li>Kolom NVARCHAR → literal dengan N</li><li>Collation menentukan case dan accent sensitivity</li><li>DATETIME2 dan literal tanggal YYYYMMDD</li></ul></div><div><ul class=""><li>Implicit conversion pada kolom menggagalkan index</li><li>Beri nama setiap constraint; CHECK meloloskan NULL</li><li>Kolom unik yang boleh NULL → filtered unique index</li><li>Ambil ID baru dengan OUTPUT atau SCOPE_IDENTITY()</li><li>SELECT dulu sebelum UPDATE/DELETE; BEGIN TRAN saat berlatih</li><li>Kurung untuk AND/OR; NULL di NOT IN; paging butuh urutan unik</li></ul></div></div></div></div><footer class="sf"><span>Penutup</span><span>79 / 82</span></footer>
+</section>
+<section class="slide k-activity" data-title="Exit ticket" aria-label="Slide 80: Exit ticket">
+<div class="sb"><p class="tag act">Aktivitas</p><h2 class="st">Exit ticket</h2><div class="sc"><ol class=""><li>Apa bedanya <code>'Budi'</code> dan <code>N'Budi'</code>, dan kapan N wajib dipakai?</li><li>Kenapa Customer.Email memakai filtered unique index, bukan constraint UNIQUE?</li><li>Sebutkan kebiasaan yang harus dilakukan sebelum menjalankan UPDATE atau DELETE.</li></ol><div class="timer" data-min="5"><span class="tm-d">05:00</span><button class="tm-start" type="button">Mulai</button><button class="tm-reset" type="button">Ulang</button></div></div></div><footer class="sf"><span>Penutup</span><span>80 / 82</span></footer>
+</section>
+<section class="slide k-content" data-title="Microsoft Learn dan persiapan Hari 3" aria-label="Slide 81: Microsoft Learn dan persiapan Hari 3">
+<div class="sb"><h2 class="st">Microsoft Learn dan persiapan Hari 3</h2><div class="sc"><div class="two"><div><h3>Microsoft Learn</h3><ul class=""><li><b>Sort and filter results in T-SQL</b></li><li><b>Modify data with T-SQL</b></li><li>Selesaikan sebagai pekerjaan rumah jika belum selesai</li></ul></div><div><h3>Hari 3</h3><ul class=""><li>JOIN, subquery, agregasi, window function</li><li>Pastikan data SalesDB lengkap dan tidak ada transaksi terbuka</li></ul></div></div></div></div><footer class="sf"><span>Penutup</span><span>81 / 82</span></footer>
+</section>
+<section class="slide k-cover" data-title="Tanya jawab" aria-label="Slide 82: Tanya jawab">
+<div class="sb"><div class="sc"><div class="end"><p class="end-t">Terima kasih</p><p class="muted">Sampai jumpa di Hari 3</p></div></div></div>
+</section>
+</div></div>
+<div id="bar" aria-hidden="true"><i></i></div>
+<nav id="nav" aria-label="Navigasi slide">
+  <button type="button" id="bPrev" aria-label="Slide sebelumnya">‹</button>
+  <button type="button" id="bNext" aria-label="Slide berikutnya">›</button>
+  <button type="button" id="bHelp" aria-label="Pintasan keyboard">?</button>
+</nav>
+<div id="help" role="dialog" aria-label="Pintasan keyboard"><div>
+  <table>
+    <tr><td><kbd>→</kbd> <kbd>Spasi</kbd> <kbd>PgDn</kbd></td><td>Slide berikutnya</td></tr>
+    <tr><td><kbd>←</kbd> <kbd>PgUp</kbd></td><td>Slide sebelumnya</td></tr>
+    <tr><td><kbd>Home</kbd> <kbd>End</kbd></td><td>Slide pertama / terakhir</td></tr>
+    <tr><td><kbd>F</kbd></td><td>Layar penuh</td></tr>
+    <tr><td><kbd>T</kbd></td><td>Mulai atau jeda timer di slide aktivitas</td></tr>
+    <tr><td><kbd>G</kbd></td><td>Pergi ke nomor slide</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Tutup panel ini</td></tr>
+  </table>
+  <p style="margin:14px 0 0;color:#5B6475">Untuk PDF: gunakan Print browser, lalu Save as PDF.</p>
+</div></div>
+<script src="script.js" defer></script>
+</body>
+</html>
